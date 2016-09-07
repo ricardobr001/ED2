@@ -27,8 +27,11 @@ int insere(Arvore *a, Aluno x);
 void cadastro(Arvore *a);
 void altera(Arvore *a);
 void cria_arvore(Arvore *a);
-void modifica(Arvore *a, Aluno x);
-void remove(Arvore *a);
+int modifica(Arvore *a, Aluno x);
+void inorder(Arvore p);
+void liberaArvore(Arvore a);
+int arvoreVazia(Arvore *a);
+//void remove(Arvore *a);
 
 int main()
 {
@@ -48,6 +51,7 @@ int main()
         {
             case 1:
                 cadastro(&a);
+                inorder(a);
             break;
 
             case 2:
@@ -55,19 +59,20 @@ int main()
             break;
 
             case 3:
-                remove();
+                //remove();
             break;
 
             case 4:
-                busca();
+                //busca();
             break;
 
             case 5:
-                lista();
+                //lista();
             break;
 
             case 6:
                 exe = 0;
+                liberaArvore(a);
             break;
         }
     }
@@ -83,22 +88,22 @@ void cria_arvore(Arvore *p)
 void cadastro(Arvore *a)
 {
     Aluno x;
-    scanf("%d", &x.RA);
-    scanf("%[^\n]s", x.nome);
-    scanf("%d", &x.ano);
-    scanf("%d", &x.cred);
+    scanf("%d %[\n]s %d %d", &x.RA, x.nome, &x.ano, &x.cred);
+    //scanf("%[^\n]s", x.nome);
+    //scanf("%d", &x.ano);
+    //scanf("%d", &x.cred);
     
     insere(a, x);
 }
 
-void altera(&a)
+void altera(Arvore *a)
 {
     Aluno x;
     scanf("%d", &x.RA);
     
     if(busca(a, x))
     {
-        scanf("%[^\n]s", x.nome);
+        scanf("%s", x.nome);
         scanf("%d", &x.ano);
         scanf("%d", &x.cred);
 
@@ -135,25 +140,25 @@ int insere(Arvore *a, Aluno x)
 		return 0;
 }
 
-int busca (Arvore p, Aluno x)
+int busca (Arvore a, Aluno x)
 {
-	if (p == NULL) {
+	if (a == NULL) {
 		return 0;
 	}
 	
-	if (x.RA < p->info)
+	if (x.RA < a->x.RA)
     {
-		return busca (p->esq, x);
+		return busca (a->esq, x);
     }
-	else if (x.RA > p->info)
+	else if (x.RA > a->x.RA)
     {
-		return busca (p->dir, x);
+		return busca (a->dir, x);
     }
 	else
 		return 1;
 }
 
-void modifica(Arvore *a, Aluno x)
+int modifica(Arvore *a, Aluno x)
 {
 	No *novo;
 	
@@ -174,4 +179,37 @@ void modifica(Arvore *a, Aluno x)
     {
         return insere (&(*a)->dir, x);
     }
+}
+
+void inorder(Arvore p) {
+	if (p != NULL) {
+		inorder (p->esq);
+		printf("RA: %d\n ", p->x.RA);
+        printf("Nome: %s\n", p->x.nome);
+        printf("Ano: %d\n", p->x.ano);
+        printf("Créditos: %d\n", p->x.cred);
+        printf("============================\n"); 
+		inorder (p->dir);    
+	}
+}
+
+void liberaArvore(Arvore a)
+{
+	if (!arvoreVazia(&a))
+	{
+		liberaArvore(a->esq);
+		liberaArvore(a->dir);
+		free(a);
+		a = NULL;
+	}
+}
+
+int arvoreVazia(Arvore *a) //Retorna 1 se a arvore estiver vazia, 0 caso tenha pelo menos 1 item
+{
+	if ((*a) == NULL)
+	{
+		return 1;
+	}
+
+	return 0;
 }
