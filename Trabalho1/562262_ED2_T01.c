@@ -20,49 +20,42 @@ Pokemon cadastro(int *i)
     {
         printf("Digite o nome do pokemon: ");
         scanf("\n%[^\n]s", info.nomePokemon);
-        __fpurge(stdin);
     } while (!verificaNome(info.nomePokemon));
 
     do
     {
         printf("Digite o tipo do pokemon: ");
         scanf("\n%[^\n]s", info.tipo);
-        __fpurge(stdin);
     } while (!verificaTipoPokemon(info.tipo));
     
     do
     {
         printf("Digite o cp do pokemon: ");
         scanf("\n%[^\n]s", info.cp);
-        __fpurge(stdin);
     } while (!verificaCP(info.cp));
     
     do
     {
         printf("Digite a data da captura: ");
         scanf("\n%[^\n]s", info.data);
-        __fpurge(stdin);
     } while (!verificaData(info.data));
     
     do
     {
         printf("Digite a hora da captura: ");
         scanf("\n%[^\n]s", info.hora);
-        __fpurge(stdin);
     } while (!verificaHora(info.hora));
     
     do
     {
         printf("Digite o nivel do treinador: ");
         scanf("\n%[^\n]s", info.nivelTreinador);
-        __fpurge(stdin);
     } while (!verificaNivel(info.nivelTreinador));
 
     do
     {
         printf("Digite o nome da equipe: ");
         scanf("\n%[^\n]s", info.nomeEquipe);
-        __fpurge(stdin);
     } while (!verificaEquipe(info.nomeEquipe));
 
     (*i)++;
@@ -130,6 +123,8 @@ int verificaCP(char *cp)
 /*Verifica se os caracteres da data são válidos*/
 int verificaData(char *data)
 {
+    int dias;
+
     if (data[6] == '1')     //Verificando se o ano é válido
     {
         if (data[7] < '6')
@@ -142,11 +137,13 @@ int verificaData(char *data)
         }
     }
 
-    if (verificaMes(data) == 0)     //Verificando se o mês é válido
+    dias = verificaMes(data);
+
+    if (dias == 0)     //Verificando se o mês é válido
     {
         return 0;
     }
-    else if (verificaMes(data) == 30)
+    else if (dias == 30)
     {
         if (data[0] < '0' || data[0] > '3')
         {
@@ -161,13 +158,13 @@ int verificaData(char *data)
             return 0;
         }
     }
-    else if (verificaMes(data) == 31)
+    else if (dias == 31)
     {
         if (data[0] < '0' || data[0] > '3')
         {
             return 0;
         }
-        else if (data[0] == '3' && (data[1] != '0' || data[1] != '1'))
+        else if (data[0] == '3' && data[1] != '0' && data[1] != '1')
         {
             return 0;
         }
@@ -176,7 +173,7 @@ int verificaData(char *data)
             return 0;
         }
     }
-    else if (verificaMes(data) == 29)
+    else if (dias == 29)
     {
         if (data[0] < '0' || data[0] > '2')
         {
@@ -187,7 +184,7 @@ int verificaData(char *data)
             return 0;
         }
     }
-    else 
+    else if (dias == 28)
     {
         if (data[0] < '0' || data[0] > '2')
         {
@@ -231,6 +228,7 @@ int verificaMes(char *data)
         {
             if (verificaBissexto(data));
             {
+                printf("É bissexto\n");
                 return 29;
             }
             
@@ -258,11 +256,17 @@ int verificaBissexto(char *data)
     int i;
     char ano[3];
 
+    printf("\n\nData: %c%c\n\n", data[6], data[7]);
+
     ano[0] = data[6];
     ano[1] = data[7];
-    i = atoi(ano);
+    i = atoi(ano) + 2000;
 
-    if ((i % 4 == 0 && i % 100 != 0) || i % 400 == 0)
+    if (i % 400 == 0)
+    {
+        return 1;
+    }
+    else if (i % 4 == 0 && i % 100 != 0)
     {
         return 1;
     }
@@ -273,19 +277,26 @@ int verificaBissexto(char *data)
 /*Verifica se os caracteres da hora são válidos*/
 int verificaHora(char *hora)
 {
-    if ((hora[0] < '0' || hora[0] > '9') && (hora[1] < '0' || hora[1] > '9'))
+    if (hora[0] < '0' || hora[0] > '2')
     {
         return 0;
     }
-    else if((hora[2]) != ':')
+    else if (hora[0] == '2' && (hora[1] < '0' || hora[1] > '3'))
     {
         return 0;
     }
-    else if ((hora[3] < '0' || hora[3] > '9') && (hora[4] < '0' || hora[4] > '9'))
+    else if(hora[2] != ':')
     {
         return 0;
     }
-
+    else if (hora[3] < '0' || hora[3] > '5')
+    {
+        return 0;
+    }
+    else if (hora[4] < '0' || hora[4] > '9')
+    {
+        return 0;
+    }
     return 1;
 }
 
@@ -318,7 +329,7 @@ int verificaEquipe(char *equipe)
 
     while (equipe[i] != '\0')
     {
-        toupper(equipe[i]);
+        equipe[i] = toupper(equipe[i]);
         i++;
     }
 

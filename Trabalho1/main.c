@@ -25,13 +25,14 @@ int main()
 
     while (i < 3)
     {
-        printf("Nome do pokemon: %s\n", info[i].nomePokemon);
+        printf("\n\n");
+        /*printf("Nome do pokemon: %s\n", info[i].nomePokemon);
         printf("Tipo: %s\n", info[i].tipo);
-        printf("CP: %s\n", info[i].cp);
+        printf("CP: %s\n", info[i].cp);*/
         printf("Data: %s\n", info[i].data);
         printf("Hora: %s\n", info[i].hora);
-        printf("Nivel: %s\n", info[i].nivelTreinador);
-        printf("Equipe: %s\n", info[i].nomeEquipe);
+        /*printf("Nivel: %s\n", info[i].nivelTreinador);
+        printf("Equipe: %s\n", info[i].nomeEquipe);*/
         printf("=================================================================");
         printf("\n\n");
         i++;

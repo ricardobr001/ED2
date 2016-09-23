@@ -14,11 +14,11 @@ typedef struct pokemon
     char codigo[12];
     char nomePokemon[50];
     char tipo[50];
-    char cp[7];
-    char data[8];
+    char cp[8];
+    char data[9];
     char hora[5];
     char treinador[50];
-    char nivelTreinador[3];
+    char nivelTreinador[4];
     char nomeEquipe[9];
 } Pokemon;
 
