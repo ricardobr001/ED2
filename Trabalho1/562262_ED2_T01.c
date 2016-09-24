@@ -12,11 +12,11 @@
 #include "562262_ED2_T01.h"
 
 /*Cadastro de um novo pokemon*/
-Pokemon cadastro(int *i)
+Pokemon cadastro()
 {
     Pokemon info;
 
-    /*do
+    do
     {
         printf("Digite o nome do pokemon: ");
         scanf("\n%[^\n]s", info.nomePokemon);
@@ -32,7 +32,7 @@ Pokemon cadastro(int *i)
     {
         printf("Digite o cp do pokemon: ");
         scanf("\n%[^\n]s", info.cp);
-    } while (!verificaCP(info.cp));*/
+    } while (!verificaCP(info.cp));
     
     do
     {
@@ -40,7 +40,7 @@ Pokemon cadastro(int *i)
         scanf("\n%[^\n]s", info.data);
     } while (!verificaData(info.data));
     
-    /*do
+    do
     {
         printf("Digite a hora da captura: ");
         scanf("\n%[^\n]s", info.hora);
@@ -64,9 +64,7 @@ Pokemon cadastro(int *i)
         scanf("\n%[^\n]s", info.nomeEquipe);
     } while (!verificaEquipe(info.nomeEquipe));
 
-    geraChavePrimaria(&info);*/
-
-    (*i)++;
+    geraChavePrimaria(&info);
 
     return info;  
 }
@@ -426,8 +424,16 @@ void geraChavePrimaria(Pokemon *info)
     info->codigo[12] = '\0';
 }
 
+/*Função que coloca os dados no vetor de chaves primárias*/
+void colocaChavePrimaria(Primaria *vet, char *codigo, int *i)
+{
+    strcpy(vet[(*i)].codigo, codigo);
+    vet[(*i)].RRN = (*i);
+    (*i)++;
+}
+
 /*Função que encontra um registro a partir de uma determinada chave primária*/
-int buscaChavePrimaria(char *codigo, Pokemon *vet, int limEsq, int limDir)
+int buscaChavePrimaria(char *codigo, Primaria *vet, int limEsq, int limDir)
 {
     int i, j;
 
@@ -458,9 +464,9 @@ int buscaChavePrimaria(char *codigo, Pokemon *vet, int limEsq, int limDir)
 }
 
 /*Função que ordena o vetor a partir da chave primária*/
-void ordenaChavePrimaria(Pokemon *vet, int tam)
+void ordenaChavePrimaria(Primaria *vet, int tam)
 {
-    Pokemon aux;
+    Primaria aux;
     int i, pai, filho, j;
 
     i = tam / 2;
@@ -512,4 +518,49 @@ void ordenaChavePrimaria(Pokemon *vet, int tam)
         }
         vet[pai] = aux;
     }
+}
+
+/*Função que grava um pokemon no arquivo pokemons.dat*/
+void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
+{
+    fprintf(fp, "testando\n");
+    fprintf(fp, "%s@%s@%s@%s@%s@%s@%s@%s@%s\n", info.codigo, info.nomePokemon, info.tipo, info.cp, info.data, info.hora, info.treinador, info.nivelTreinador, info.nomeEquipe);
+}
+
+/*Função que abre os fluxos de leitura e escrita para o arquivo pokemons.dat*/
+void abreArquivoPokemon(FILE *fp)
+{
+    FILE *aux;
+
+    aux = fopen("pokemons.dat", "r");
+
+    if (aux == NULL)
+    {   
+        fp = fopen("pokemons.dat", "w+");      //Criando um novo arquivo pokemons.dat
+    }
+    else
+    {
+        fp = fopen("pokemons.dat", "a+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+    }
+
+    fclose(aux);  
+}
+
+/*Função que abre os fluxos de leitura e escrita para os demais arquivos*/
+void abreArquivo(FILE *fp, char *nome)
+{
+    FILE *aux;
+
+    aux = fopen(nome, "r");
+
+    if (aux == NULL)
+    {   
+        fp = fopen(nome, "w+");      //Criando um novo arquivo pokemons.dat
+    }
+    else
+    {
+        fp = fopen(nome, "a");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
+    }
+
+    fclose(aux);  
 }

@@ -22,8 +22,14 @@ typedef struct pokemon
     char nomeEquipe[9];
 } Pokemon;
 
+typedef struct primaria
+{
+    char codigo[13];
+    int RRN;
+} Primaria;
+
 /*Cadastro de um novo pokemon*/
-Pokemon cadastro(int *i);
+Pokemon cadastro();
 
 /*Verifica se os caracteres do nome é válido*/
 int verificaNome(char *nome);
@@ -58,10 +64,22 @@ int verificaEquipe(char *equipe);
 /*Função que gera a chave primária de um novo registro*/
 void geraChavePrimaria(Pokemon *info);
 
+/*Função que coloca os dados no vetor de chaves primárias*/
+void colocaChavePrimaria(Primaria *vet, char *codigo, int *i);
+
 /*Função que encontra um registro a partir de uma determinada chave primária*/
-int buscaChavePrimaria(char *codigo, Pokemon *vet, int limEsq, int limDir);
+int buscaChavePrimaria(char *codigo, Primaria *vet, int limEsq, int limDir);
 
 /*Função que ordena o vetor a partir da chave primária*/
-void ordenaChavePrimaria(Pokemon *vet, int tam);
+void ordenaChavePrimaria(Primaria *vet, int tam);
+
+/*Função que grava um pokemon no arquivo pokemons.dat*/
+void gravaPokemonNoArquivo(FILE *fp, Pokemon info);
+
+/*Função que abre os fluxos de leitura e escrita para o arquivo pokemons.dat*/
+void abreArquivoPokemon(FILE *fp);
+
+/*Função que abre os fluxos de leitura e escrita para os demais arquivos*/
+void abreArquivo(FILE *fp, char *nome);
 
 #endif

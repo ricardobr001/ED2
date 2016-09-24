@@ -13,73 +13,71 @@
 
 int main()
 {
-    int i = 0;
-    //char chave[13];
-    Pokemon info[50];
+    int i = 0, j, op, buscar, listar;
+    char chave[13];
+    Pokemon info;
+    Primaria vet[50];
+    FILE *fpPokemonDAT;
+    //FILE *fpChavePrimaria, *fpNome, *fpEquipe;
 
-    while (i < 3)
+    abreArquivoPokemon(fpPokemonDAT);
+    //abreArquivo(fpChavePrimaria, "iprimary.idx");
+    //abreArquivo(fpNome, "ipokemon.idx");
+    //abreArquivo(fpEquipe, "iteam.idx");
+
+    do
     {
-        info[i] = cadastro(&i);
-    }
+        printf("1. Cadastrar\n2. Remover\n3. Mudar CP\n4. Buscar\n5. Listar\n6. Limpar banco\n7. Sair\n");
+        scanf("%d", &op);
 
-    i = 0;
+        switch (op)
+        {
+            case 1:
+                info = cadastro();
+                colocaChavePrimaria(vet, info.codigo, &i);
+                ordenaChavePrimaria(vet, i+1);
+                gravaPokemonNoArquivo(fpPokemonDAT, info);
+            break;
 
-    /*while (i < 30)
-    {
-        printf("\n\n");
-        printf("Código do pokemon: %s\n", info[i].codigo);
-        printf("Nome do pokemon: %s\n", info[i].nomePokemon);
-        printf("Tipo: %s\n", info[i].tipo);
-        printf("CP: %s\n", info[i].cp);
-        printf("Data: %s\n", info[i].data);
-        printf("Hora: %s\n", info[i].hora);
-        printf("Treinador: %s\n", info[i].treinador);
-        printf("Nivel: %s\n", info[i].nivelTreinador);
-        printf("Equipe: %s\n", info[i].nomeEquipe);
-        printf("=================================================================");
-        printf("\n\n");
-        i++;
-    }*/
+            case 2:
+                //implementar remoção
+            break;
 
-    //ordenaChavePrimaria(info, 30);
+            case 3:
+                //implementar modificação do CP
+            break;
 
-    //printf("Ordenou!!\n\n");
+            case 4:
+                scanf("%d", &buscar);
+                scanf("\n%[^\n]s", chave);
 
-    while (i < 3)
-    {
-        printf("\n\n");
-        /*printf("Código do pokemon: %s\n", info[i].codigo);
-        printf("Nome do pokemon: %s\n", info[i].nomePokemon);
-        printf("Tipo: %s\n", info[i].tipo);
-        printf("CP: %s\n", info[i].cp);*/
-        printf("Data: %s\n", info[i].data);
-        /*printf("Hora: %s\n", info[i].hora);
-        printf("Treinador: %s\n", info[i].treinador);
-        printf("Nivel: %s\n", info[i].nivelTreinador);
-        printf("Equipe: %s\n", info[i].nomeEquipe);
-        printf("=================================================================");
-        printf("\n\n");*/
-        i++;
-    }
+                j = buscaChavePrimaria(chave, vet, 0, i+1);
+                printf("Chave: %s\n", vet[j].codigo);
+                printf("RRN: %d\n", vet[j].RRN);
+                //implementar busca a partir do nome do pokemon
+                //implementar busca a partir do nome da equipe
+            break;
 
-    /*scanf("\n%[^\n]s", chave);
-    i = buscaChavePrimaria(chave, info, 0, 30);
+            case 5:
+                scanf("%d", &listar);
 
-    printf("Efetuou a busca!!\n");
-    printf("\n\n");
-    printf("i = %d\n", i);
-    printf("=================================================================");
-    printf("Código do pokemon: %s\n", info[i].codigo);
-    printf("Nome do pokemon: %s\n", info[i].nomePokemon);
-    printf("Tipo: %s\n", info[i].tipo);
-    printf("CP: %s\n", info[i].cp);
-    printf("Data: %s\n", info[i].data);
-    printf("Hora: %s\n", info[i].hora);
-    printf("Treinador: %s\n", info[i].treinador);
-    printf("Nivel: %s\n", info[i].nivelTreinador);
-    printf("Equipe: %s\n", info[i].nomeEquipe);
-    printf("=================================================================");
-    printf("\n\n");*/
+                //listar os pokemons ordenados a partir do codigo
+                //listar os pokemons ordenados a partir do nome do pokemon
+                //listar os pokemons ordenados a partir do nome da equipe
+            break;
+
+            case 6:
+                //implementar a função de limpar o banco
+            break;
+
+            case 7:
+
+                //Descarrega a memória no disco
+                //Implementar funções
+            break;
+        }
+
+    } while (op != 7);
 
     return 0;
 }
