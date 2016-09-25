@@ -252,11 +252,11 @@ int verificaMes(char *data)
         }
         else if (data[4] == '2')        //Se for Fevereiro, entra no if
         {
-            printf("Saida da função %d\n", verificaBissexto(data));
+            //printf("Saida da função %d\n", verificaBissexto(data));
 
             if (verificaBissexto(data));        //Se for um ano bissexto, fevereiro terá 29 dias
             {                
-                printf("Tem 29 dias!\n");
+                //printf("Tem 29 dias!\n");
                 return 29;
             }
             
@@ -437,6 +437,14 @@ void colocaChavePrimaria(Indice *vet, char *codigo, int *i)
     (*i)++;
 }
 
+/*Função que coloca os dados no vetor de nome pokemon e nome da equipe*/
+void colocaNome(Nome *vet, char *codigo, char *str, int *i)
+{
+    strcpy(vet[(*i)].codigo, codigo);
+    strcpy(vet[(*i)].str, str);
+    (*i)++;
+}
+
 /*Função que encontra um registro a partir de uma determinada chave primária*/
 int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir)
 {
@@ -466,6 +474,28 @@ int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir)
             return buscaChavePrimaria(codigo, vet, limEsq, i-1);
         }
     }
+}
+
+/*Função que encontra um registro a partir de uma determinado nome ou time*/
+int buscaIndice(char *nome, Nome *vet, int tam)
+{
+    int i, flag;
+
+    for (i = 0 ; i < tam ; i++)
+    {
+        flag = strcmp(vet[i].str, nome);
+
+        if (flag == 0)     //Se as strings forem iguais, retorna a posição em que se encontra a chave primária encontrada
+        {
+            return i;
+        }
+        else if (flag > 0)
+        {
+            return -1;
+        }
+    }
+
+    return -1;
 }
 
 /*Função que ordena o vetor a partir da chave primária*/
@@ -525,14 +555,111 @@ void ordenaChavePrimaria(Indice *vet, int tam)
     }
 }
 
+/*Função que ordena o vetor a partir do nome do pokemon ou da equipe*/
+void ordenaIndice(Nome *vet, int tam)
+{
+    Nome aux;
+    int i, pai, filho, j;
+
+    i = tam / 2;
+
+    for (;;)
+    {
+        if (i > 0)
+        {
+            i--;
+            aux = vet[i];
+        }
+        else
+        {
+            tam--;
+
+            if (tam == 0)
+            {
+                return;
+            }
+
+            aux = vet[tam];
+            vet[tam] = vet[0];
+        }
+
+        pai = i;
+        filho = i * 2 + 1;
+
+        while (filho < tam)
+        {
+            for(j = 0 ; vet[filho+1].str[j] == vet[filho].str[j] ; j++);
+
+            if ((filho + 1 < tam) && (vet[filho+1].str[j] > vet[filho].str[j]))
+            {
+                filho++;
+            }
+
+            for(j = 0 ; vet[filho].str[j] == aux.str[j] ; j++);
+
+            if (vet[filho].str[j] > aux.str[j])
+            {
+                vet[pai] = vet[filho];
+                pai = filho;
+                filho = pai * 2 + 1;
+            }
+            else
+            {
+                break;
+            }
+        }
+        vet[pai] = aux;
+    }
+}
+
 /*Função que grava um pokemon no arquivo pokemons.dat*/
 void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
 {
-    fprintf(fp, "%s@%s@%s@%s@%s@%s@%s@%s@%s\n", info.codigo, info.nomePokemon, info.tipo, info.cp, info.data, info.hora, info.treinador, info.nivelTreinador, info.nomeEquipe);
+    int tam = 0;
+    char str[194];
+    strcpy(str, info.codigo);
+    strcat(str, "@");
+    strcat(str, info.nomePokemon);
+    strcat(str, "@");
+    strcat(str, info.tipo);
+    strcat(str, "@");
+    strcat(str, info.cp);
+    strcat(str, "@");
+    strcat(str, info.data);
+    strcat(str, "@");
+    strcat(str, info.hora);
+    strcat(str, "@");
+    strcat(str, info.treinador);
+    strcat(str, "@");
+    strcat(str, info.nivelTreinador);
+    strcat(str, "@");
+    strcat(str, info.nomeEquipe);
+    
+    tam = strlen(str);
+
+    for ( ; tam < 192 ; tam++)
+    {
+        strcat(str, "#");
+    }
+
+    fprintf(fp, "%s", str);
 }
 
 /*Função que grava o vetor de indice no arquivo*/
-void gravaIndice(FILE *fp, Indice *vet, int tam)
+void gravaChavePrimaria(FILE *fp, Indice *vet, int tam)
+{
+    int i;
+
+    fprintf(fp, "1\n");
+
+    for (i = 0 ; i < tam ; i++)
+    {
+        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN); 
+    }
+}
+
+/*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe*/
+void gravaIndice(FILE *fp, Nome *vet, int tam)
 {
     int i;
 
@@ -540,6 +667,6 @@ void gravaIndice(FILE *fp, Indice *vet, int tam)
     
     for (i = 0 ; i < tam ; i++)
     {
-        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN); 
+        fprintf(fp, "%s %s\n", vet[i].codigo, vet[i].str); 
     }
 }

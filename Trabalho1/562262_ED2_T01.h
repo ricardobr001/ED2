@@ -26,6 +26,11 @@ typedef struct indice{
     int RRN;
 } Indice;
 
+typedef struct nome{
+    char codigo[13];
+    char str[50];
+} Nome;
+
 /*Cadastro de um novo pokemon*/
 Pokemon cadastro();
 
@@ -65,16 +70,28 @@ void geraChavePrimaria(Pokemon *info);
 /*Função que coloca os dados no vetor de chaves primárias*/
 void colocaChavePrimaria(Indice *vet, char *codigo, int *i);
 
+/*Função que coloca os dados no vetor de nome pokemon e nome da equipe*/
+void colocaNome(Nome *vet, char *codigo, char *str, int *i);
+
 /*Função que encontra um registro a partir de uma determinada chave primária*/
 int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir);
 
+/*Função que encontra um registro a partir de uma determinado nome ou time*/
+int buscaIndice(char *codigo, Nome *vet, int tam);
+
 /*Função que ordena o vetor a partir da chave primária*/
 void ordenaChavePrimaria(Indice *vet, int tam);
+
+/*Função que ordena o vetor a partir da chave primária*/
+void ordenaIndice(Nome *vet, int tam);
 
 /*Função que grava um pokemon no arquivo pokemons.dat*/
 void gravaPokemonNoArquivo(FILE *fp, Pokemon info);
 
 /*Função que grava o vetor de indice no arquivo*/
-void gravaIndice(FILE *fp, Indice *vet, int tam);
+void gravaChavePrimaria(FILE *fp, Indice *vet, int tam);
+
+/*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe*/
+void gravaIndice(FILE *fp, Nome *vet, int tam);
 
 #endif

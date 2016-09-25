@@ -16,7 +16,8 @@ int main()
     int i = 0, j = 0, k = 0, n = 0, op, buscar, listar;
     char chave[13];
     Pokemon info;
-    Indice codigo[50], nome[50], equipe[50];
+    Indice codigo[50]; 
+    Nome nome[50], equipe[50];
     FILE *fpPokemonDAT, *fpChavePrimaria, *fpNome, *fpEquipe;
     FILE *auxPokemon, *auxChavePrimaria, *auxNome, *auxEquipe;
 
@@ -73,16 +74,16 @@ int main()
         //printf("1. Cadastrar\n2. Remover\n3. Mudar CP\n4. Buscar\n5. Listar\n6. Limpar banco\n7. Sair\n");
         scanf("%d", &op);
 
-        switch (op)
+        switch (op)     //Switch do menu do opções
         {
             case 1:
-                info = cadastro();
-                colocaChavePrimaria(codigo, info.codigo, &i);
-                colocaChavePrimaria(nome, info.codigo, &k);
-                colocaChavePrimaria(equipe, info.codigo, &n);
-                ordenaChavePrimaria(nome, k+1);
-                ordenaChavePrimaria(equipe, n+1);
-                ordenaChavePrimaria(codigo, i+1);
+                info = cadastro();      //Leitura de um pokemon do teclado
+                colocaChavePrimaria(codigo, info.codigo, &i);       //Colocando o código do pokemon no vetor de código e RRN
+                colocaNome(nome, info.codigo, info.nomePokemon, &k);         //Colocando o nome do pokemon no vetor de código e nome
+                colocaNome(equipe, info.codigo, info.nomeEquipe, &n);      //Colocando o nome da equipe do pokemon no vetor de código e equipe
+                ordenaChavePrimaria(codigo, k);     //Ordenando os vetores após a incersão
+                ordenaIndice(nome, n);
+                ordenaIndice(equipe, i);
                 gravaPokemonNoArquivo(fpPokemonDAT, info);
             break;
 
@@ -98,9 +99,7 @@ int main()
                 scanf("%d", &buscar);
                 scanf("\n%[^\n]s", chave);
 
-                j = buscaChavePrimaria(chave, codigo, 0, i+1);
-                printf("Chave: %s\n", codigo[j].codigo);
-                printf("RRN: %d\n", codigo[j].RRN);
+                j = buscaChavePrimaria(chave, codigo, 0, i);
                 //implementar busca a partir do nome do pokemon
                 //implementar busca a partir do nome da equipe
             break;
@@ -118,9 +117,9 @@ int main()
             break;
 
             case 7:
-                gravaIndice(fpChavePrimaria, codigo, j+1);
-                gravaIndice(fpNome, nome, k+1);
-                gravaIndice(fpEquipe, equipe, n+1);
+                gravaChavePrimaria(fpChavePrimaria, codigo, i);
+                gravaIndice(fpNome, nome, k);
+                gravaIndice(fpEquipe, equipe, n);
                 //Descarrega a memória no disco
                 //Implementar funções
             break;
