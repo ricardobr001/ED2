@@ -18,49 +18,49 @@ Pokemon cadastro()
 
     do
     {
-        printf("Digite o nome do pokemon: ");
+        //printf("Digite o nome do pokemon: ");
         scanf("\n%[^\n]s", info.nomePokemon);
     } while (!verificaNome(info.nomePokemon));
 
     do
     {
-        printf("Digite o tipo do pokemon: ");
+        //printf("Digite o tipo do pokemon: ");
         scanf("\n%[^\n]s", info.tipo);
     } while (!verificaTipoPokemon(info.tipo));
     
     do
     {
-        printf("Digite o cp do pokemon: ");
+        //printf("Digite o cp do pokemon: ");
         scanf("\n%[^\n]s", info.cp);
     } while (!verificaCP(info.cp));
     
     do
     {
-        printf("Digite a data da captura: ");
+        //printf("Digite a data da captura: ");
         scanf("\n%[^\n]s", info.data);
     } while (!verificaData(info.data));
     
     do
     {
-        printf("Digite a hora da captura: ");
+        //printf("Digite a hora da captura: ");
         scanf("\n%[^\n]s", info.hora);
     } while (!verificaHora(info.hora));
     
     do
     {
-        printf("Digite o nome do treinador: ");
+        //printf("Digite o nome do treinador: ");
         scanf("\n%[^\n]s", info.treinador);
     } while(!verificaTreinador(info.treinador));    
 
     do
     {
-        printf("Digite o nivel do treinador: ");
+        //printf("Digite o nivel do treinador: ");
         scanf("\n%[^\n]s", info.nivelTreinador);
     } while (!verificaNivel(info.nivelTreinador));
 
     do
     {
-        printf("Digite o nome da equipe: ");
+        //printf("Digite o nome da equipe: ");
         scanf("\n%[^\n]s", info.nomeEquipe);
     } while (!verificaEquipe(info.nomeEquipe));
 
@@ -156,6 +156,11 @@ int verificaData(char *data)
         {
             return 0;
         }
+    }
+
+    if (data[2] != '/' || data[5] != '/')       //Se os delimitadores da data não for '/', não é uma data válida
+    {
+        return 0;
     }
 
     dias = verificaMes(data);       //Descobrindo quantos dias tem o mês
@@ -425,7 +430,7 @@ void geraChavePrimaria(Pokemon *info)
 }
 
 /*Função que coloca os dados no vetor de chaves primárias*/
-void colocaChavePrimaria(Primaria *vet, char *codigo, int *i)
+void colocaChavePrimaria(Indice *vet, char *codigo, int *i)
 {
     strcpy(vet[(*i)].codigo, codigo);
     vet[(*i)].RRN = (*i);
@@ -433,7 +438,7 @@ void colocaChavePrimaria(Primaria *vet, char *codigo, int *i)
 }
 
 /*Função que encontra um registro a partir de uma determinada chave primária*/
-int buscaChavePrimaria(char *codigo, Primaria *vet, int limEsq, int limDir)
+int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir)
 {
     int i, j;
 
@@ -464,9 +469,9 @@ int buscaChavePrimaria(char *codigo, Primaria *vet, int limEsq, int limDir)
 }
 
 /*Função que ordena o vetor a partir da chave primária*/
-void ordenaChavePrimaria(Primaria *vet, int tam)
+void ordenaChavePrimaria(Indice *vet, int tam)
 {
-    Primaria aux;
+    Indice aux;
     int i, pai, filho, j;
 
     i = tam / 2;
@@ -523,44 +528,18 @@ void ordenaChavePrimaria(Primaria *vet, int tam)
 /*Função que grava um pokemon no arquivo pokemons.dat*/
 void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
 {
-    fprintf(fp, "testando\n");
     fprintf(fp, "%s@%s@%s@%s@%s@%s@%s@%s@%s\n", info.codigo, info.nomePokemon, info.tipo, info.cp, info.data, info.hora, info.treinador, info.nivelTreinador, info.nomeEquipe);
 }
 
-/*Função que abre os fluxos de leitura e escrita para o arquivo pokemons.dat*/
-void abreArquivoPokemon(FILE *fp)
+/*Função que grava o vetor de indice no arquivo*/
+void gravaIndice(FILE *fp, Indice *vet, int tam)
 {
-    FILE *aux;
+    int i;
 
-    aux = fopen("pokemons.dat", "r");
-
-    if (aux == NULL)
-    {   
-        fp = fopen("pokemons.dat", "w+");      //Criando um novo arquivo pokemons.dat
-    }
-    else
+    fprintf(fp, "1\n");
+    
+    for (i = 0 ; i < tam ; i++)
     {
-        fp = fopen("pokemons.dat", "a+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN); 
     }
-
-    fclose(aux);  
-}
-
-/*Função que abre os fluxos de leitura e escrita para os demais arquivos*/
-void abreArquivo(FILE *fp, char *nome)
-{
-    FILE *aux;
-
-    aux = fopen(nome, "r");
-
-    if (aux == NULL)
-    {   
-        fp = fopen(nome, "w+");      //Criando um novo arquivo pokemons.dat
-    }
-    else
-    {
-        fp = fopen(nome, "a");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
-    }
-
-    fclose(aux);  
 }

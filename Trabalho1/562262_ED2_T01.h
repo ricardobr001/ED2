@@ -9,8 +9,7 @@
 #ifndef TRAB_H
 #define TRAB_H
 
-typedef struct pokemon
-{
+typedef struct pokemon{
     char codigo[13];
     char nomePokemon[50];
     char tipo[50];
@@ -22,11 +21,10 @@ typedef struct pokemon
     char nomeEquipe[9];
 } Pokemon;
 
-typedef struct primaria
-{
-    char codigo[13];
+typedef struct indice{
+    char codigo[50];
     int RRN;
-} Primaria;
+} Indice;
 
 /*Cadastro de um novo pokemon*/
 Pokemon cadastro();
@@ -65,21 +63,18 @@ int verificaEquipe(char *equipe);
 void geraChavePrimaria(Pokemon *info);
 
 /*Função que coloca os dados no vetor de chaves primárias*/
-void colocaChavePrimaria(Primaria *vet, char *codigo, int *i);
+void colocaChavePrimaria(Indice *vet, char *codigo, int *i);
 
 /*Função que encontra um registro a partir de uma determinada chave primária*/
-int buscaChavePrimaria(char *codigo, Primaria *vet, int limEsq, int limDir);
+int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir);
 
 /*Função que ordena o vetor a partir da chave primária*/
-void ordenaChavePrimaria(Primaria *vet, int tam);
+void ordenaChavePrimaria(Indice *vet, int tam);
 
 /*Função que grava um pokemon no arquivo pokemons.dat*/
 void gravaPokemonNoArquivo(FILE *fp, Pokemon info);
 
-/*Função que abre os fluxos de leitura e escrita para o arquivo pokemons.dat*/
-void abreArquivoPokemon(FILE *fp);
-
-/*Função que abre os fluxos de leitura e escrita para os demais arquivos*/
-void abreArquivo(FILE *fp, char *nome);
+/*Função que grava o vetor de indice no arquivo*/
+void gravaIndice(FILE *fp, Indice *vet, int tam);
 
 #endif
