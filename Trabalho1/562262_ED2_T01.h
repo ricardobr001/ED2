@@ -82,6 +82,9 @@ int buscaIndice(char *codigo, Nome *vet, int tam);
 /*Função que ordena o vetor a partir da chave primária*/
 void ordenaChavePrimaria(Indice *vet, int tam);
 
+/*Função que ordena o vetor a partir do nome do pokemon ou da equipe*/
+void ordenaNome(Nome *vet, int tam);
+
 /*Função que ordena o vetor a partir da chave primária*/
 void ordenaIndice(Nome *vet, int tam);
 
@@ -93,5 +96,11 @@ void gravaChavePrimaria(FILE *fp, Indice *vet, int tam);
 
 /*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe*/
 void gravaIndice(FILE *fp, Nome *vet, int tam);
+
+/*Função que faz a leitura das chaves primarias e o RRN do arquivo*/
+int leituraChaveRRN(FILE *fp, Indice *vet, int *i);
+
+/*Função que faz a leitura das chaves primarias, nome do pokemon e nome da equipe*/
+int leituraNomeEquipe(FILE *fp, Nome *vet, int *i);
 
 #endif

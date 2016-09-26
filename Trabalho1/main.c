@@ -13,7 +13,7 @@
 
 int main()
 {
-    int i = 0, j = 0, k = 0, n = 0, op, buscar, listar;
+    int contCodigo = 0, retorno = 0, contNome = 0, contEquipe = 0, op, buscar, listar;
     char chave[13];
     Pokemon info;
     Indice codigo[50]; 
@@ -41,8 +41,9 @@ int main()
     }
     else
     {
-        fpChavePrimaria = fopen("iprimary.idx", "a+");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
-        rewind(fpChavePrimaria);         
+        leituraChaveRRN(auxChavePrimaria, codigo, &contCodigo);
+        fpChavePrimaria = fopen("iprimary.idx", "a+");      //Abrindo o fluxo de leitura e escrita no começo do arquivo      
+        rewind(fpChavePrimaria);
     }
 
     auxNome = fopen("ipokemon.idx", "r");
@@ -53,6 +54,7 @@ int main()
     }
     else
     {
+        leituraNomeEquipe(auxNome, nome, &contNome);
         fpNome = fopen("ipokemon.idx", "a+");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
         rewind(fpNome);         
     }
@@ -65,9 +67,12 @@ int main()
     }
     else
     {
+        leituraNomeEquipe(auxEquipe, equipe, &contEquipe);
         fpEquipe = fopen("iteam.idx", "a+");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
         rewind(fpEquipe);         
     }
+
+    printf("passou das leitura\n");
 
     do
     {
@@ -78,12 +83,13 @@ int main()
         {
             case 1:
                 info = cadastro();      //Leitura de um pokemon do teclado
-                colocaChavePrimaria(codigo, info.codigo, &i);       //Colocando o código do pokemon no vetor de código e RRN
-                colocaNome(nome, info.codigo, info.nomePokemon, &k);         //Colocando o nome do pokemon no vetor de código e nome
-                colocaNome(equipe, info.codigo, info.nomeEquipe, &n);      //Colocando o nome da equipe do pokemon no vetor de código e equipe
-                ordenaChavePrimaria(codigo, k);     //Ordenando os vetores após a incersão
-                ordenaIndice(nome, n);
-                ordenaIndice(equipe, i);
+                colocaChavePrimaria(codigo, info.codigo, &contCodigo);       //Colocando o código do pokemon no vetor de código e RRN
+                colocaNome(nome, info.codigo, info.nomePokemon, &contNome);         //Colocando o nome do pokemon no vetor de código e nome
+                colocaNome(equipe, info.codigo, info.nomeEquipe, &contEquipe);      //Colocando o nome da equipe do pokemon no vetor de código e equipe
+                ordenaChavePrimaria(codigo, contCodigo);     //Ordenando os vetores após a incersão
+                ordenaIndice(nome, contNome);
+                ordenaNome(nome, contNome);                
+                ordenaIndice(equipe, contEquipe);
                 gravaPokemonNoArquivo(fpPokemonDAT, info);
             break;
 
@@ -99,17 +105,39 @@ int main()
                 scanf("%d", &buscar);
                 scanf("\n%[^\n]s", chave);
 
-                j = buscaChavePrimaria(chave, codigo, 0, i);
-                //implementar busca a partir do nome do pokemon
-                //implementar busca a partir do nome da equipe
+                switch (buscar)
+                {
+                    case 1:
+                        retorno = buscaChavePrimaria(chave, codigo, 0, contCodigo);
+                    break;
+
+                    case 2:
+                        //busca pelo nome pokemon
+                    break;
+
+                    case 3:
+                        //busca pelo nome da equipe
+                    break;
+                }
             break;
 
             case 5:
                 scanf("%d", &listar);
 
-                //listar os pokemons ordenados a partir do codigo
-                //listar os pokemons ordenados a partir do nome do pokemon
-                //listar os pokemons ordenados a partir do nome da equipe
+                switch (listar)
+                {
+                    case 1:
+                        //Lista pelo código
+                    break;
+
+                    case 2:
+                        //Lista pelo nome pokemon
+                    break;
+
+                    case 3:
+                        //Lista pelo nome da equipe
+                    break;
+                }
             break;
 
             case 6:
@@ -117,9 +145,9 @@ int main()
             break;
 
             case 7:
-                gravaChavePrimaria(fpChavePrimaria, codigo, i);
-                gravaIndice(fpNome, nome, k);
-                gravaIndice(fpEquipe, equipe, n);
+                gravaChavePrimaria(fpChavePrimaria, codigo, contCodigo);
+                gravaIndice(fpNome, nome, contNome);
+                gravaIndice(fpEquipe, equipe, contEquipe);
                 //Descarrega a memória no disco
                 //Implementar funções
             break;
