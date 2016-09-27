@@ -118,4 +118,7 @@ void listaPokemonCodigo(FILE *fp, Indice *vet, int tam);
 /*Função que lista os pokemons por equipe ou nome*/
 void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam);
 
+/*Função que modifica o CP de um pokemon*/
+void modificaCP(Indice *vet, int tam);
+
 #endif

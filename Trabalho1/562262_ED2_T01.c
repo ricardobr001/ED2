@@ -690,3 +690,31 @@ void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice
         printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
     }
 }
+
+/*Função que modifica o CP de um pokemon*/
+void modificaCP(Indice *vet, int tam)
+{
+    FILE *fp;
+    Pokemon aux;
+    char cp[8], codigo[13];
+    int pos;
+
+    fp = fopen("pokemons.dat", "r+");
+
+    scanf("\n%[^\n]s", codigo);
+    
+    do
+    {
+        scanf("\n%[^\n]s", cp);
+    } while (!verificaCP(cp));
+
+    pos = buscaChavePrimaria(codigo, vet, 0, tam);
+
+    fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);
+
+    fscanf(fp, "%[^@]s", aux.codigo);
+    fscanf(fp, "@%[^@]s", aux.nomePokemon);
+    fscanf(fp, "@%[^@]s@", aux.tipo);
+    fprintf(fp, "@%s", cp);
+    fflush(fp);
+}

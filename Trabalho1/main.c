@@ -85,21 +85,17 @@ int main()
 
                 colocaChavePrimaria(codigo, info.codigo, &contCodigo);       //Colocando o código do pokemon no vetor de código e RRN
                 colocaNome(nome, info.codigo, info.nomePokemon, &contNome);         //Colocando o nome do pokemon no vetor de código e nome
-                colocaNome(equipe, info.codigo, info.nomeEquipe, &contEquipe);      //Colocando o nome da equipe do pokemon no vetor de código e equipe
-
-                ordenaChavePrimaria(codigo, contCodigo);     //Ordenando os vetores após a incersão
-                ordenaNome(nome, contNome);                
-                ordenaNome(equipe, contEquipe);
+                colocaNome(equipe, info.codigo, info.nomeEquipe, &contEquipe);      //Colocando o nome da equipe do pokemon no vetor de código e equipe                
 
                 gravaPokemonNoArquivo(fpPokemonDAT, info);
             break;
 
             case 2:
-                //implementar remoção
+                modificaCP(codigo, contCodigo);
             break;
 
             case 3:
-                //implementar modificação do CP
+                //Implementar remoção
             break;
 
             case 4:
@@ -153,19 +149,21 @@ int main()
 
             case 5:
                 scanf("%d", &listar);       //Selecionando qual tipo de listagem será feita
+                ordenaChavePrimaria(codigo, contCodigo);
+                ordenaNome(nome, contNome);
+                ordenaNome(equipe, contEquipe);
 
                 switch (listar)
                 {
                     case 1:
-                        //ordenaChavePrimaria(codigo, contCodigo);
                         listaPokemonCodigo(fpPokemonDAT, codigo, contCodigo);       //Listando os pokemons pelo o seu código
                     break;
 
-                    case 2:
+                    case 2:                                                
                         listaPokemonNomeEquipe(fpPokemonDAT, nome, codigo, contNome);       //Listando os pokemons a partir do seu nome
                     break;
 
-                    case 3:
+                    case 3:                                                
                         listaPokemonNomeEquipe(fpPokemonDAT, equipe, codigo, contEquipe);       //Listando os pokemons a partir da sua equipe
                     break;
                 }
@@ -179,8 +177,10 @@ int main()
                 gravaChavePrimaria(fpChavePrimaria, codigo, contCodigo);
                 gravaIndice(fpNome, nome, contNome);
                 gravaIndice(fpEquipe, equipe, contEquipe);
-                //Descarrega a memória no disco
-                //Implementar funções
+                fclose(fpPokemonDAT);
+                fclose(fpChavePrimaria);
+                fclose(fpNome);
+                fclose(fpEquipe);
             break;
         }
 
