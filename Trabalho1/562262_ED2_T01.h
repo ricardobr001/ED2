@@ -79,14 +79,20 @@ int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir);
 /*Função que encontra um registro a partir de uma determinado nome ou time*/
 int buscaIndice(char *codigo, Nome *vet, int tam);
 
+/*Função que imprime os pokemons que tem um determinado nome ou pertencem a um determinado time*/
+void imprimePokemonEquipe(FILE *fp, char *chave, Nome *vetorNomeEquipe, Indice *vetorIndice, int inicio, int tam);
+
 /*Função que ordena o vetor a partir da chave primária*/
 void ordenaChavePrimaria(Indice *vet, int tam);
 
+/*Função de comparação dos códigos para o qsort*/
+int compare(const void *x, const void *y);
+
+/*Função de comparação das strings, que podem ser tanto nome de equipe como nome do pokemon para o qsort*/
+int compareNome(const void *x, const void *y);
+
 /*Função que ordena o vetor a partir do nome do pokemon ou da equipe*/
 void ordenaNome(Nome *vet, int tam);
-
-/*Função que ordena o vetor a partir da chave primária*/
-void ordenaIndice(Nome *vet, int tam);
 
 /*Função que grava um pokemon no arquivo pokemons.dat*/
 void gravaPokemonNoArquivo(FILE *fp, Pokemon info);
@@ -102,5 +108,14 @@ int leituraChaveRRN(FILE *fp, Indice *vet, int *i);
 
 /*Função que faz a leitura das chaves primarias, nome do pokemon e nome da equipe*/
 int leituraNomeEquipe(FILE *fp, Nome *vet, int *i);
+
+/*Função que recupera um pokemon do arquivo pokemons.dat a partir da chave primária*/
+Pokemon recuperaPokemon(FILE *fp, Indice *vet, int posicao);
+
+/*Função que lista o pokemon a partir de um determinado código*/
+void listaPokemonCodigo(FILE *fp, Indice *vet, int tam);
+
+/*Função que lista os pokemons por equipe ou nome*/
+void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam);
 
 #endif

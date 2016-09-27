@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "562262_ED2_T01.h"
 
 /*Cadastro de um novo pokemon*/
@@ -498,175 +499,48 @@ int buscaIndice(char *nome, Nome *vet, int tam)
     return -1;
 }
 
+/*Função que imprime os pokemons que tem um determinado nome ou pertencem a um determinado time*/
+void imprimePokemonEquipe(FILE *fp, char *chave, Nome *vetorNomeEquipe, Indice *vetorIndice, int inicio, int tam)
+{
+    int i;
+    Pokemon aux;
+
+    for (i = inicio ; i < tam && !strcmp(vetorNomeEquipe[i].str, chave) ; i++)
+    {
+        aux = recuperaPokemon(fp, vetorIndice, buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam));
+        printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
+    }
+}
+
 /*Função que ordena o vetor a partir da chave primária*/
 void ordenaChavePrimaria(Indice *vet, int tam)
 {
-    Indice aux;
-    int i, pai, filho, j;
+    qsort(vet, tam, sizeof(Indice), compare);
+}
 
-    i = tam / 2;
+/*Função de comparação dos códigos para o qsort*/
+int compare(const void *x, const void *y)
+{
+    Indice *m = (Indice*)x;
+    Indice *n = (Indice*)y;
 
-    for (;;)
-    {
-        if (i > 0)
-        {
-            i--;
-            aux = vet[i];
-        }
-        else
-        {
-            tam--;
+    return strcmp(m->codigo, n->codigo);
+}
 
-            if (tam == 0)
-            {
-                return;
-            }
+/*Função de comparação das strings, que podem ser tanto nome de equipe como nome do pokemon para o qsort*/
+int compareNome(const void *x, const void *y)
+{
+    Nome *m = (Nome*)x;
+    Nome *n = (Nome*)y;
 
-            aux = vet[tam];
-            vet[tam] = vet[0];
-        }
-
-        pai = i;
-        filho = i * 2 + 1;
-
-        while (filho < tam)
-        {
-            for(j = 0 ; vet[filho+1].codigo[j] == vet[filho].codigo[j] ; j++);
-
-            if ((filho + 1 < tam) && (vet[filho+1].codigo[j] > vet[filho].codigo[j]))
-            {
-                filho++;
-            }
-
-            for(j = 0 ; vet[filho].codigo[j] == aux.codigo[j] ; j++);
-
-            if (vet[filho].codigo[j] > aux.codigo[j])
-            {
-                vet[pai] = vet[filho];
-                pai = filho;
-                filho = pai * 2 + 1;
-            }
-            else
-            {
-                break;
-            }
-        }
-        vet[pai] = aux;
-    }
+    return strcmp(m->str, n->str);
 }
 
 /*Função que ordena o vetor a partir do nome do pokemon ou da equipe*/
 void ordenaNome(Nome *vet, int tam)
 {
-    Nome aux;
-    int i, pai, filho, j;
-
-    i = tam / 2;
-
-    for (;;)
-    {
-        if (i > 0)
-        {
-            i--;
-            aux = vet[i];
-        }
-        else
-        {
-            tam--;
-
-            if (tam == 0)
-            {
-                return;
-            }
-
-            aux = vet[tam];
-            vet[tam] = vet[0];
-        }
-
-        pai = i;
-        filho = i * 2 + 1;
-
-        while (filho < tam)
-        {
-            for(j = 0 ; vet[filho+1].str[j] == vet[filho].str[j] ; j++);
-
-            if ((filho + 1 < tam) && (vet[filho+1].str[j] > vet[filho].str[j]))
-            {
-                filho++;
-            }
-
-            for(j = 0 ; vet[filho].str[j] == aux.str[j] ; j++);
-
-            if (vet[filho].str[j] > aux.str[j])
-            {
-                vet[pai] = vet[filho];
-                pai = filho;
-                filho = pai * 2 + 1;
-            }
-            else
-            {
-                break;
-            }
-        }
-        vet[pai] = aux;
-    }
-}
-
-/*Função que ordena o vetor a partir do nome do pokemon ou da equipe*/
-void ordenaIndice(Nome *vet, int tam)
-{
-    Nome aux;
-    int i, pai, filho, j;
-
-    i = tam / 2;
-
-    for (;;)
-    {
-        if (i > 0)
-        {
-            i--;
-            aux = vet[i];
-        }
-        else
-        {
-            tam--;
-
-            if (tam == 0)
-            {
-                return;
-            }
-
-            aux = vet[tam];
-            vet[tam] = vet[0];
-        }
-
-        pai = i;
-        filho = i * 2 + 1;
-
-        while (filho < tam)
-        {
-            for(j = 0 ; vet[filho+1].codigo[j] == vet[filho].codigo[j] ; j++);
-
-            if ((filho + 1 < tam) && (vet[filho+1].codigo[j] > vet[filho].codigo[j]))
-            {
-                filho++;
-            }
-
-            for(j = 0 ; vet[filho].codigo[j] == aux.codigo[j] ; j++);
-
-            if (vet[filho].codigo[j] > aux.codigo[j])
-            {
-                vet[pai] = vet[filho];
-                pai = filho;
-                filho = pai * 2 + 1;
-            }
-            else
-            {
-                break;
-            }
-        }
-        vet[pai] = aux;
-    }
+    qsort(vet, tam, sizeof(Nome), compare);
+    qsort(vet, tam, sizeof(Nome), compareNome);
 }
 
 /*Função que grava um pokemon no arquivo pokemons.dat*/
@@ -711,7 +585,7 @@ void gravaChavePrimaria(FILE *fp, Indice *vet, int tam)
 
     for (i = 0 ; i < tam ; i++)
     {
-        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN); 
+        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN+1); 
     }
 }
 
@@ -737,9 +611,8 @@ int leituraChaveRRN(FILE *fp, Indice *vet, int *i)
 
     if (ok)
     {
-        while (!feof(fp))
-        {
-            fscanf(fp, "\n%s %d", vet[(*i)].codigo, vet[(*i)].RRN);
+        while (fscanf(fp, "%s %d", vet[(*i)].codigo, &vet[(*i)].RRN) != EOF)
+        {            
             (*i)++;
         }
 
@@ -760,9 +633,8 @@ int leituraNomeEquipe(FILE *fp, Nome *vet, int *i)
 
     if (ok)
     {
-        while (!feof(fp))
-        {
-            fscanf(fp, "%s %s", vet[(*i)].codigo, vet[(*i)].str);
+        while (fscanf(fp, "%s %s", vet[(*i)].codigo, vet[(*i)].str) != EOF)
+        {            
             (*i)++;
         }
 
@@ -771,5 +643,50 @@ int leituraNomeEquipe(FILE *fp, Nome *vet, int *i)
     else
     {
         return 0;
+    }
+}
+
+/*Função que recupera um pokemon do arquivo pokemons.dat a partir da chave primária*/
+Pokemon recuperaPokemon(FILE *fp, Indice *vet, int posicaoVet)
+{
+    Pokemon aux;
+    fseek(fp, (vet[posicaoVet].RRN-1)*192, SEEK_SET);
+
+    fscanf(fp, "%[^@]s", aux.codigo);
+    fscanf(fp, "@%[^@]s", aux.nomePokemon);
+    fscanf(fp, "@%[^@]s", aux.tipo);
+    fscanf(fp, "@%[^@]s", aux.cp);
+    fscanf(fp, "@%[^@]s", aux.data);
+    fscanf(fp, "@%[^@]s", aux.hora);
+    fscanf(fp, "@%[^@]s", aux.treinador);
+    fscanf(fp, "@%[^@]s", aux.nivelTreinador);
+    fscanf(fp, "@%[^#]s", aux.nomeEquipe);
+
+    return aux;
+}
+
+/*Função que lista o pokemon a partir de um determinado código*/
+void listaPokemonCodigo(FILE *fp, Indice *vet, int tam)
+{
+    int i;
+    Pokemon aux;
+
+    for (i = 0 ; i < tam ; i++)
+    {
+        aux = recuperaPokemon(fp, vet, i);
+        printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
+    }
+}
+
+/*Função que lista os pokemons por equipe ou nome*/
+void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam)
+{
+    int i;
+    Pokemon aux;
+
+    for (i = 0 ; i < tam ; i++)
+    {
+        aux = recuperaPokemon(fp, vetorIndice, buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam));
+        printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
     }
 }
