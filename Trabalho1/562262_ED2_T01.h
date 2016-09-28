@@ -127,4 +127,13 @@ void modificaCP(FILE *fp, Indice *vet, int tam);
 /*Função que marca um registro como removido*/
 void marcaRegistro(Indice *vet, char *chave, int tam);
 
+/*Função que limpa o banco de dados*/
+int limpaBanco(FILE *fp, Indice *vet, int tam);
+
+/*Função que grava o vetor de indice no arquivo após ter sido feito a limpeza*/
+void gravaChavePrimariaLimpeza(FILE *fp, Indice *vet, int tam);
+
+/*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe após ter side feito a limpeza*/
+void gravaIndiceLimpeza(FILE *fp, Nome *vet, int tam);
+
 #endif

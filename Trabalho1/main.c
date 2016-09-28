@@ -15,7 +15,7 @@
 
 int main()
 {
-    int contCodigo = 0, retorno = 0, contNome = 0, contEquipe = 0, op, buscar, listar;
+    int contCodigo = 0, retorno = 0, contNome = 0, contEquipe = 0, op, buscar, listar, limpeza = 0;
     char chave[13];
     Pokemon info, aux;
     Indice codigo[50]; 
@@ -182,17 +182,32 @@ int main()
             break;
 
             case 6:
-                //implementar a função de limpar o banco
+                limpeza = limpaBanco(fpPokemonDAT, codigo, contCodigo);
+                fpPokemonDAT = fopen("pokemons.dat", "r+");
+                fseek(fpPokemonDAT, 0 ,SEEK_END);
             break;
 
             case 7:
-                gravaChavePrimaria(fpChavePrimaria, codigo, contCodigo);
-                gravaIndice(fpNome, nome, contNome);
-                gravaIndice(fpEquipe, equipe, contEquipe);
-                fclose(fpPokemonDAT);
-                fclose(fpChavePrimaria);
-                fclose(fpNome);
-                fclose(fpEquipe);
+                if (!limpeza)
+                {
+                    gravaChavePrimaria(fpChavePrimaria, codigo, contCodigo);
+                    gravaIndice(fpNome, nome, contNome);
+                    gravaIndice(fpEquipe, equipe, contEquipe);
+                    fclose(fpPokemonDAT);
+                    fclose(fpChavePrimaria);
+                    fclose(fpNome);
+                    fclose(fpEquipe);
+                }
+                else
+                {
+                    gravaChavePrimariaLimpeza(fpChavePrimaria, codigo, contCodigo);
+                    gravaIndiceLimpeza(fpNome, nome, contNome);
+                    gravaIndiceLimpeza(fpEquipe, equipe, contEquipe);
+                    fclose(fpPokemonDAT);
+                    fclose(fpChavePrimaria);
+                    fclose(fpNome);
+                    fclose(fpEquipe);
+                }                
             break;
         }
 

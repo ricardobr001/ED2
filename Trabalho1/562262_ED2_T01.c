@@ -803,3 +803,60 @@ void marcaRegistro(Indice *vet, char *chave, int tam)
         vet[pos].codigo[1] = '|'; 
     }
 }
+
+/*Função que limpa o banco de dados*/
+int limpaBanco(FILE *fp, Indice *vet, int tam)
+{
+    FILE *novo;
+    Pokemon aux;
+    int i;
+
+    novo = fopen("pokemons2.dat", "r+");
+
+    for (i = 0 ; i < tam ; i++)
+    {
+        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        {
+            aux = recuperaPokemon(fp, vet, i);
+            gravaPokemonNoArquivo(novo, aux);
+        }
+    }
+
+    fclose(novo);
+    system("rm pokemons.dat");
+    system("mv pokemons2.dat pokemons.dat");
+
+    return 1;
+}
+
+/*Função que grava o vetor de indice no arquivo após ter sido feito a limpeza*/
+void gravaChavePrimariaLimpeza(FILE *fp, Indice *vet, int tam)
+{
+    int i;
+
+    fprintf(fp, "1\n");
+
+    for (i = 0 ; i < tam ; i++)
+    {
+        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        {
+            fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN+1);
+        }         
+    }
+}
+
+/*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe após ter sido feito a limpeza*/
+void gravaIndiceLimpeza(FILE *fp, Nome *vet, int tam)
+{
+    int i;
+
+    fprintf(fp, "1\n");
+    
+    for (i = 0 ; i < tam ; i++)
+    {
+        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        {
+            fprintf(fp, "%s %s\n", vet[i].codigo, vet[i].str);
+        }
+    }
+}
