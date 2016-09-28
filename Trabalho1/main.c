@@ -44,7 +44,8 @@ int main()
     else
     {
         leituraChaveRRN(auxChavePrimaria, codigo, &contCodigo);
-        fpChavePrimaria = fopen("iprimary.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo      
+        fpChavePrimaria = fopen("iprimary.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
+        fprintf(fpChavePrimaria, "0\n");
         rewind(fpChavePrimaria);
     }
 
@@ -58,6 +59,7 @@ int main()
     {
         leituraNomeEquipe(auxNome, nome, &contNome);
         fpNome = fopen("ipokemon.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
+        fprintf(fpNome, "0\n");
         rewind(fpNome);         
     }
 
@@ -71,6 +73,7 @@ int main()
     {
         leituraNomeEquipe(auxEquipe, equipe, &contEquipe);
         fpEquipe = fopen("iteam.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
+        fprintf(fpEquipe, "0\n");
         rewind(fpEquipe);         
     }
 
@@ -110,7 +113,7 @@ int main()
 
             case 3:
                 scanf("\n%[^\n]s", chave);      //Lendo a chave para efetuar a busca
-                marcaRegistro(codigo, chave, contCodigo);
+                marcaRegistro(fpPokemonDAT, codigo, chave, contCodigo);
             break;
 
             case 4:
@@ -201,8 +204,8 @@ int main()
                 else
                 {
                     gravaChavePrimariaLimpeza(fpChavePrimaria, codigo, contCodigo);
-                    gravaIndiceLimpeza(fpNome, nome, contNome);
-                    gravaIndiceLimpeza(fpEquipe, equipe, contEquipe);
+                    gravaIndiceLimpeza(fpNome, nome, codigo, contNome);
+                    gravaIndiceLimpeza(fpEquipe, equipe, codigo, contEquipe);
                     fclose(fpPokemonDAT);
                     fclose(fpChavePrimaria);
                     fclose(fpNome);

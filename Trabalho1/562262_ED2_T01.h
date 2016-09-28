@@ -125,7 +125,7 @@ void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice
 void modificaCP(FILE *fp, Indice *vet, int tam);
 
 /*Função que marca um registro como removido*/
-void marcaRegistro(Indice *vet, char *chave, int tam);
+void marcaRegistro(FILE *fp, Indice *vet, char *chave, int tam);
 
 /*Função que limpa o banco de dados*/
 int limpaBanco(FILE *fp, Indice *vet, int tam);
@@ -134,6 +134,6 @@ int limpaBanco(FILE *fp, Indice *vet, int tam);
 void gravaChavePrimariaLimpeza(FILE *fp, Indice *vet, int tam);
 
 /*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe após ter side feito a limpeza*/
-void gravaIndiceLimpeza(FILE *fp, Nome *vet, int tam);
+void gravaIndiceLimpeza(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam);
 
 #endif

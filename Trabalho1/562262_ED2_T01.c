@@ -724,7 +724,7 @@ Pokemon recuperaPokemon(FILE *fp, Indice *vet, int posicaoVet)
     fscanf(fp, "@%[^@]s", aux.hora);
     fscanf(fp, "@%[^@]s", aux.treinador);
     fscanf(fp, "@%[^@]s", aux.nivelTreinador);
-    fscanf(fp, "@%[^#]s", aux.nomeEquipe);
+    fscanf(fp, "@%[^@]s", aux.nomeEquipe);
 
     return aux;
 }
@@ -737,21 +737,29 @@ void listaPokemonCodigo(FILE *fp, Indice *vet, int tam)
 
     for (i = 0 ; i < tam ; i++)
     {
-        aux = recuperaPokemon(fp, vet, i);
-        printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
+        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        {   
+            aux = recuperaPokemon(fp, vet, i);
+            printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
+        }        
     }
 }
 
 /*Função que lista os pokemons por equipe ou nome*/
 void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam)
 {
-    int i;
+    int i, pos;
     Pokemon aux;
 
     for (i = 0 ; i < tam ; i++)
     {
-        aux = recuperaPokemon(fp, vetorIndice, buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam));
-        printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
+        pos = buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam);
+
+        if (pos != -1)
+        {
+            aux = recuperaPokemon(fp, vetorIndice, pos);
+            printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
+        }        
     }
 }
 
@@ -787,7 +795,7 @@ void modificaCP(FILE *fp, Indice *vet, int tam)
 }
 
 /*Função que marca um registro como removido*/
-void marcaRegistro(Indice *vet, char *chave, int tam)
+void marcaRegistro(FILE *fp, Indice *vet, char *chave, int tam)
 {
     int pos;
 
@@ -801,6 +809,9 @@ void marcaRegistro(Indice *vet, char *chave, int tam)
     {
         vet[pos].codigo[0] = '*';
         vet[pos].codigo[1] = '|'; 
+        fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);
+        fprintf(fp, "%c%c", vet[pos].codigo[0], vet[pos].codigo[1]);
+        fseek(fp, 0, SEEK_END);
     }
 }
 
@@ -811,7 +822,7 @@ int limpaBanco(FILE *fp, Indice *vet, int tam)
     Pokemon aux;
     int i;
 
-    novo = fopen("pokemons2.dat", "r+");
+    novo = fopen("pokemons2.dat", "w");
 
     for (i = 0 ; i < tam ; i++)
     {
@@ -846,17 +857,19 @@ void gravaChavePrimariaLimpeza(FILE *fp, Indice *vet, int tam)
 }
 
 /*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe após ter sido feito a limpeza*/
-void gravaIndiceLimpeza(FILE *fp, Nome *vet, int tam)
+void gravaIndiceLimpeza(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam)
 {
-    int i;
+    int i, busca;
 
     fprintf(fp, "1\n");
     
     for (i = 0 ; i < tam ; i++)
     {
-        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        busca = buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam);
+
+        if (busca != -1)
         {
-            fprintf(fp, "%s %s\n", vet[i].codigo, vet[i].str);
+            fprintf(fp, "%s %s\n", vetorNomeEquipe[i].codigo, vetorNomeEquipe[i].str);
         }
     }
 }
