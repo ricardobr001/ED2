@@ -67,6 +67,9 @@ int verificaEquipe(char *equipe);
 /*Função que gera a chave primária de um novo registro*/
 void geraChavePrimaria(Pokemon *info);
 
+/*Função que verifica se a chave primaria gerada já existe*/
+int verificaChave(Pokemon info, Indice *vet, int tam);
+
 /*Função que coloca os dados no vetor de chaves primárias*/
 void colocaChavePrimaria(Indice *vet, char *codigo, int *i);
 
@@ -119,6 +122,9 @@ void listaPokemonCodigo(FILE *fp, Indice *vet, int tam);
 void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam);
 
 /*Função que modifica o CP de um pokemon*/
-void modificaCP(Indice *vet, int tam);
+void modificaCP(FILE *fp, Indice *vet, int tam);
+
+/*Função que marca um registro como removido*/
+void marcaRegistro(Indice *vet, char *chave, int tam);
 
 #endif

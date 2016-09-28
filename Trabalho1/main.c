@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdio_ext.h>
 #include "562262_ED2_T01.h"
 
 int main()
@@ -30,7 +31,7 @@ int main()
     }
     else
     {
-        fpPokemonDAT = fopen("pokemons.dat", "a+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+        fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
         fseek(fpPokemonDAT, 0 ,SEEK_END);
     }
 
@@ -81,21 +82,35 @@ int main()
         switch (op)     //Switch do menu do opções
         {
             case 1:
-                info = cadastro();      //Leitura de um pokemon do teclado
+                do
+                {
+                    info = cadastro();      //Leitura de um pokemon do teclado
+
+                    if (!verificaChave(info, codigo, contCodigo))
+                    {
+                        printf("ERRO: Já existe um registro com a chave primária %s.\n", info.codigo);
+                    }
+
+                } while (!verificaChave(info, codigo, contCodigo));
 
                 colocaChavePrimaria(codigo, info.codigo, &contCodigo);       //Colocando o código do pokemon no vetor de código e RRN
                 colocaNome(nome, info.codigo, info.nomePokemon, &contNome);         //Colocando o nome do pokemon no vetor de código e nome
                 colocaNome(equipe, info.codigo, info.nomeEquipe, &contEquipe);      //Colocando o nome da equipe do pokemon no vetor de código e equipe                
 
+                ordenaChavePrimaria(codigo, contCodigo);
+                ordenaNome(nome, contNome);
+                ordenaNome(equipe, contEquipe);
+
                 gravaPokemonNoArquivo(fpPokemonDAT, info);
             break;
 
             case 2:
-                modificaCP(codigo, contCodigo);
+                modificaCP(fpPokemonDAT, codigo, contCodigo);
             break;
 
             case 3:
-                //Implementar remoção
+                scanf("\n%[^\n]s", chave);      //Lendo a chave para efetuar a busca
+                marcaRegistro(codigo, chave, contCodigo);
             break;
 
             case 4:
@@ -148,10 +163,7 @@ int main()
             break;
 
             case 5:
-                scanf("%d", &listar);       //Selecionando qual tipo de listagem será feita
-                ordenaChavePrimaria(codigo, contCodigo);
-                ordenaNome(nome, contNome);
-                ordenaNome(equipe, contEquipe);
+                scanf("%d", &listar);       //Selecionando qual tipo de listagem será feita                
 
                 switch (listar)
                 {

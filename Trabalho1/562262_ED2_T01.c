@@ -21,48 +21,96 @@ Pokemon cadastro()
     {
         //printf("Digite o nome do pokemon: ");
         scanf("\n%[^\n]s", info.nomePokemon);
+
+        if (!verificaNome(info.nomePokemon))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaNome(info.nomePokemon));
 
     do
     {
         //printf("Digite o tipo do pokemon: ");
         scanf("\n%[^\n]s", info.tipo);
+
+        if (!verificaTipoPokemon(info.tipo))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaTipoPokemon(info.tipo));
     
     do
     {
         //printf("Digite o cp do pokemon: ");
         scanf("\n%[^\n]s", info.cp);
+
+        if (!verificaCP(info.cp))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaCP(info.cp));
     
     do
     {
         //printf("Digite a data da captura: ");
         scanf("\n%[^\n]s", info.data);
+
+        if (!verificaData(info.data))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaData(info.data));
     
     do
     {
         //printf("Digite a hora da captura: ");
         scanf("\n%[^\n]s", info.hora);
+
+        if (!verificaHora(info.hora))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaHora(info.hora));
     
     do
     {
         //printf("Digite o nome do treinador: ");
         scanf("\n%[^\n]s", info.treinador);
+
+        if (!verificaTreinador(info.treinador))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while(!verificaTreinador(info.treinador));    
 
     do
     {
         //printf("Digite o nivel do treinador: ");
         scanf("\n%[^\n]s", info.nivelTreinador);
+
+        if (!verificaNivel(info.nivelTreinador))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaNivel(info.nivelTreinador));
 
     do
     {
         //printf("Digite o nome da equipe: ");
         scanf("\n%[^\n]s", info.nomeEquipe);
+
+        if (!verificaEquipe(info.nomeEquipe))
+        {
+            printf("Campo inválido! Informe novamente: ");
+        }
+
     } while (!verificaEquipe(info.nomeEquipe));
 
     geraChavePrimaria(&info);
@@ -430,6 +478,21 @@ void geraChavePrimaria(Pokemon *info)
     info->codigo[12] = '\0';
 }
 
+/*Função que verifica se a chave primaria gerada já existe*/
+int verificaChave(Pokemon info, Indice *vet, int tam)
+{
+    int pos;
+
+    pos = buscaChavePrimaria(info.codigo, vet, 0, tam);
+
+    if (pos == -1)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 /*Função que coloca os dados no vetor de chaves primárias*/
 void colocaChavePrimaria(Indice *vet, char *codigo, int *i)
 {
@@ -565,6 +628,7 @@ void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
     strcat(str, info.nivelTreinador);
     strcat(str, "@");
     strcat(str, info.nomeEquipe);
+    strcat(str, "@");
     
     tam = strlen(str);
 
@@ -650,7 +714,7 @@ int leituraNomeEquipe(FILE *fp, Nome *vet, int *i)
 Pokemon recuperaPokemon(FILE *fp, Indice *vet, int posicaoVet)
 {
     Pokemon aux;
-    fseek(fp, (vet[posicaoVet].RRN-1)*192, SEEK_SET);
+    fseek(fp, (vet[posicaoVet].RRN)*192, SEEK_SET);
 
     fscanf(fp, "%[^@]s", aux.codigo);
     fscanf(fp, "@%[^@]s", aux.nomePokemon);
@@ -692,29 +756,50 @@ void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice
 }
 
 /*Função que modifica o CP de um pokemon*/
-void modificaCP(Indice *vet, int tam)
+void modificaCP(FILE *fp, Indice *vet, int tam)
 {
-    FILE *fp;
     Pokemon aux;
     char cp[8], codigo[13];
     int pos;
-
-    fp = fopen("pokemons.dat", "r+");
 
     scanf("\n%[^\n]s", codigo);
     
     do
     {
         scanf("\n%[^\n]s", cp);
+
+        if (!verificaCP(cp))
+        {
+            printf("Campo inválido!\n");
+        }
+
     } while (!verificaCP(cp));
 
     pos = buscaChavePrimaria(codigo, vet, 0, tam);
 
-    fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);
+    fseek(fp, (vet[pos].RRN)*192, SEEK_SET);
 
     fscanf(fp, "%[^@]s", aux.codigo);
     fscanf(fp, "@%[^@]s", aux.nomePokemon);
     fscanf(fp, "@%[^@]s@", aux.tipo);
     fprintf(fp, "@%s", cp);
-    fflush(fp);
+    fseek(fp, 0 ,SEEK_END);
+}
+
+/*Função que marca um registro como removido*/
+void marcaRegistro(Indice *vet, char *chave, int tam)
+{
+    int pos;
+
+    pos = buscaChavePrimaria(chave, vet, 0, tam);
+
+    if (pos == -1)
+    {
+        printf("Registro não encontrado!\n");
+    }
+    else
+    {
+        vet[pos].codigo[0] = '*';
+        vet[pos].codigo[1] = '|'; 
+    }
 }
