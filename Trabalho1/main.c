@@ -15,11 +15,11 @@
 
 int main()
 {
-    int contCodigo = 0, retorno = 0, contNome = 0, contEquipe = 0, op, buscar, listar, limpeza = 0;
+    int contCodigo = 0, retorno = 0, contNome = 0, contEquipe = 0, op, buscar, listar, okCodigo, okNome, okEquipe;
     char chave[13];
     Pokemon info, aux;
-    Indice codigo[50]; 
-    Nome nome[50], equipe[50];
+    Indice codigo[500]; 
+    Nome nome[500], equipe[500];
     FILE *fpPokemonDAT, *fpChavePrimaria, *fpNome, *fpEquipe;
     FILE *auxPokemon, *auxChavePrimaria, *auxNome, *auxEquipe;
 
@@ -43,7 +43,7 @@ int main()
     }
     else
     {
-        leituraChaveRRN(auxChavePrimaria, codigo, &contCodigo);
+        okCodigo = leituraChaveRRN(auxChavePrimaria, codigo, &contCodigo);
         fpChavePrimaria = fopen("iprimary.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
         fprintf(fpChavePrimaria, "0\n");
         rewind(fpChavePrimaria);
@@ -57,7 +57,7 @@ int main()
     }
     else
     {
-        leituraNomeEquipe(auxNome, nome, &contNome);
+        okNome = leituraNomeEquipe(auxNome, nome, &contNome);
         fpNome = fopen("ipokemon.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
         fprintf(fpNome, "0\n");
         rewind(fpNome);         
@@ -71,15 +71,25 @@ int main()
     }
     else
     {
-        leituraNomeEquipe(auxEquipe, equipe, &contEquipe);
+        okEquipe = leituraNomeEquipe(auxEquipe, equipe, &contEquipe);
         fpEquipe = fopen("iteam.idx", "w");      //Abrindo o fluxo de leitura e escrita no começo do arquivo
         fprintf(fpEquipe, "0\n");
         rewind(fpEquipe);         
     }
 
+    if (okCodigo == 0 || okNome == 0 || okEquipe == 0)
+    {
+        contCodigo = reconstroiIndice(fpPokemonDAT, nome, equipe, codigo);
+        contNome = contCodigo;
+        contEquipe = contCodigo; 
+        fclose(fpPokemonDAT);
+        fclose(fpChavePrimaria);
+        fclose(fpNome);
+        fclose(fpEquipe);
+    }
+
     do
     {
-        //printf("1. Cadastrar\n2. Remover\n3. Mudar CP\n4. Buscar\n5. Listar\n6. Limpar banco\n7. Sair\n");
         scanf("%d", &op);
 
         switch (op)     //Switch do menu do opções
@@ -104,21 +114,32 @@ int main()
                 ordenaNome(nome, contNome);
                 ordenaNome(equipe, contEquipe);
 
+                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                fseek(fpPokemonDAT, 0 ,SEEK_END);
                 gravaPokemonNoArquivo(fpPokemonDAT, info);
+                fclose(fpPokemonDAT);
             break;
 
             case 2:
+                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                fseek(fpPokemonDAT, 0 ,SEEK_END);
                 modificaCP(fpPokemonDAT, codigo, contCodigo);
+                fclose(fpPokemonDAT);
             break;
 
             case 3:
                 scanf("\n%[^\n]s", chave);      //Lendo a chave para efetuar a busca
+                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                fseek(fpPokemonDAT, 0 ,SEEK_END);
                 marcaRegistro(fpPokemonDAT, codigo, chave, contCodigo);
+                fclose(fpPokemonDAT);
             break;
 
             case 4:
                 scanf("%d", &buscar);       //Selecionando qual tipo de busca será feita
                 scanf("\n%[^\n]s", chave);      //Lendo a chave para efetuar a busca
+                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                fseek(fpPokemonDAT, 0 ,SEEK_END);
 
                 switch (buscar)
                 {
@@ -163,10 +184,14 @@ int main()
                         }
                     break;
                 }
+
+                fclose(fpPokemonDAT);
             break;
 
             case 5:
-                scanf("%d", &listar);       //Selecionando qual tipo de listagem será feita                
+                scanf("%d", &listar);       //Selecionando qual tipo de listagem será feita
+                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                fseek(fpPokemonDAT, 0 ,SEEK_END);              
 
                 switch (listar)
                 {
@@ -182,35 +207,40 @@ int main()
                         listaPokemonNomeEquipe(fpPokemonDAT, equipe, codigo, contEquipe);       //Listando os pokemons a partir da sua equipe
                     break;
                 }
+
+                fclose(fpPokemonDAT);
             break;
 
             case 6:
-                limpeza = limpaBanco(fpPokemonDAT, codigo, contCodigo);
+                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                fseek(fpPokemonDAT, 0 ,SEEK_SET);
+
+                limpaBanco(fpPokemonDAT, codigo, contCodigo);
                 fpPokemonDAT = fopen("pokemons.dat", "r+");
                 fseek(fpPokemonDAT, 0 ,SEEK_END);
+
+                contCodigo = reconstroiIndice(fpPokemonDAT, nome, equipe, codigo);
+                contNome = contCodigo;
+                contEquipe = contCodigo;
+
+                fclose(fpPokemonDAT);
             break;
 
             case 7:
-                if (!limpeza)
-                {
-                    gravaChavePrimaria(fpChavePrimaria, codigo, contCodigo);
-                    gravaIndice(fpNome, nome, contNome);
-                    gravaIndice(fpEquipe, equipe, contEquipe);
-                    fclose(fpPokemonDAT);
-                    fclose(fpChavePrimaria);
-                    fclose(fpNome);
-                    fclose(fpEquipe);
-                }
-                else
-                {
-                    gravaChavePrimariaLimpeza(fpChavePrimaria, codigo, contCodigo);
-                    gravaIndiceLimpeza(fpNome, nome, codigo, contNome);
-                    gravaIndiceLimpeza(fpEquipe, equipe, codigo, contEquipe);
-                    fclose(fpPokemonDAT);
-                    fclose(fpChavePrimaria);
-                    fclose(fpNome);
-                    fclose(fpEquipe);
-                }                
+                fpChavePrimaria = fopen("iprimary.idx", "w");
+                rewind(fpChavePrimaria);
+                gravaChavePrimaria(fpChavePrimaria, codigo, contCodigo);
+                fclose(fpChavePrimaria);
+
+                fpNome = fopen("ipokemon.idx", "w");
+                fseek(fpNome, 0 ,SEEK_END);
+                gravaIndice(fpNome, nome, contNome);
+                fclose(fpNome);
+
+                fpEquipe = fopen("iteam.idx", "w");
+                fseek(fpEquipe, 0 ,SEEK_END);
+                gravaIndice(fpEquipe, equipe, contEquipe);
+                fclose(fpEquipe);           
             break;
         }
 

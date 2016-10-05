@@ -128,12 +128,15 @@ void modificaCP(FILE *fp, Indice *vet, int tam);
 void marcaRegistro(FILE *fp, Indice *vet, char *chave, int tam);
 
 /*Função que limpa o banco de dados*/
-int limpaBanco(FILE *fp, Indice *vet, int tam);
+void limpaBanco(FILE *fp, Indice *vet, int tam);
 
-/*Função que grava o vetor de indice no arquivo após ter sido feito a limpeza*/
-void gravaChavePrimariaLimpeza(FILE *fp, Indice *vet, int tam);
+/*Função que reeordena o vetor pelo RRN*/
+void reeordenaRRN(Indice *vet, int tam);
 
-/*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe após ter side feito a limpeza*/
-void gravaIndiceLimpeza(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam);
+/*Função de comparação dos códigos para o qsort*/
+int compareRRN(const void *x, const void *y);
+
+/*Função que reconstroi os indices a partir do arquivo de dados*/
+int reconstroiIndice(FILE *fp, Nome *nome, Nome *equipe, Indice *codigo);
 
 #endif

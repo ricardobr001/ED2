@@ -19,7 +19,6 @@ Pokemon cadastro()
 
     do
     {
-        //printf("Digite o nome do pokemon: ");
         scanf("\n%[^\n]s", info.nomePokemon);
 
         if (!verificaNome(info.nomePokemon))
@@ -31,7 +30,6 @@ Pokemon cadastro()
 
     do
     {
-        //printf("Digite o tipo do pokemon: ");
         scanf("\n%[^\n]s", info.tipo);
 
         if (!verificaTipoPokemon(info.tipo))
@@ -43,7 +41,6 @@ Pokemon cadastro()
     
     do
     {
-        //printf("Digite o cp do pokemon: ");
         scanf("\n%[^\n]s", info.cp);
 
         if (!verificaCP(info.cp))
@@ -55,7 +52,6 @@ Pokemon cadastro()
     
     do
     {
-        //printf("Digite a data da captura: ");
         scanf("\n%[^\n]s", info.data);
 
         if (!verificaData(info.data))
@@ -67,7 +63,6 @@ Pokemon cadastro()
     
     do
     {
-        //printf("Digite a hora da captura: ");
         scanf("\n%[^\n]s", info.hora);
 
         if (!verificaHora(info.hora))
@@ -79,7 +74,6 @@ Pokemon cadastro()
     
     do
     {
-        //printf("Digite o nome do treinador: ");
         scanf("\n%[^\n]s", info.treinador);
 
         if (!verificaTreinador(info.treinador))
@@ -91,7 +85,6 @@ Pokemon cadastro()
 
     do
     {
-        //printf("Digite o nivel do treinador: ");
         scanf("\n%[^\n]s", info.nivelTreinador);
 
         if (!verificaNivel(info.nivelTreinador))
@@ -103,7 +96,6 @@ Pokemon cadastro()
 
     do
     {
-        //printf("Digite o nome da equipe: ");
         scanf("\n%[^\n]s", info.nomeEquipe);
 
         if (!verificaEquipe(info.nomeEquipe))
@@ -147,11 +139,21 @@ int verificaNome(char *nome)
 /*Verifica se os caracteres do tipo são válidos*/
 int verificaTipoPokemon(char *tipo)
 {
-    int i = 0;
+    int i = 0, flag = 0;
 
     while (tipo[i] != '\0')
     {
         if (((tipo[i] < 'A' || tipo[i] > 'Z') && (tipo[i] < 'a' || tipo[i] > 'z')) && tipo[i] != '/')
+        {
+            return 0;
+        }
+
+        if (tipo[i] == '/')
+        {
+            flag++;
+        }
+        
+        if (flag == 2)
         {
             return 0;
         }
@@ -301,15 +303,13 @@ int verificaMes(char *data)
         }
         else if (data[4] == '2')        //Se for Fevereiro, entra no if
         {
-            //printf("Saida da função %d\n", verificaBissexto(data));
 
-            if (verificaBissexto(data));        //Se for um ano bissexto, fevereiro terá 29 dias
+            if (verificaBissexto(data))        //Se for um ano bissexto, fevereiro terá 29 dias
             {                
-                //printf("Tem 29 dias!\n");
                 return 29;
             }
-            
-            return 28;      //Caso contrário terá 28 dias
+
+            return 28;      //Caso contrário terá 28 dias           
         }
         
         return 30;      //Para qualquer outro mês entre 1 e 9 será um mês com 30 dias 
@@ -333,29 +333,16 @@ int verificaBissexto(char *data)
     int i;
     char ano[3];
 
-    //printf("\n\nData: %c%c\n\n", data[6], data[7]);
-
     ano[0] = data[6];       //Copia os caracteres que delimitam o ano para a string ano
     ano[1] = data[7];
-    i = atoi(ano) + 2000;       //Transforma a string ano em número e soma 2000 ao seu valor
+    ano[2] = '\0';
+    i = atoi(ano);       //Transforma a string ano em número
 
-    /*printf("i = %d\n", i);
-    printf("i mod 400 = %d\n", i%400);
-    printf("i mod 4 = %d\n", i%4);
-    printf("i mod 100 = %d\n", i%100);*/
-
-    if (i % 400 == 0)           //Um ano divísivel por 400 é bissexto
+    if (i % 4 == 0)           //Um ano divísivel por 4 é bissexto
     {
-        //printf("É bissexto!!\n\n");
-        return 1;
-    }
-    else if (i % 4 == 0 && i % 100 != 0)        //Um ano divísivel por 4 é bissexto, porém um ano divisível por 100 não é bissexto
-    {
-        //printf("É bissexto!!\n\n");
         return 1;
     }
 
-    //printf("NÃO é bissexto!\n\n");
     return 0;
 }
 
@@ -414,13 +401,20 @@ int verificaTreinador(char *treinador)
 /*Verifica se o nivel do treinador é válido*/
 int verificaNivel(char *nivel)
 {
-    int i;
-    char n[4];
+    if (nivel[0] == '0' && nivel[1] == '0' && nivel[2] == '0')
+    {
+        return 0;
+    }
+    else if (nivel[0] == '0')      //Verifica se o nível é válido
+    {
+        if ((nivel[1] < '0' || nivel[1] > '9') && (nivel[2] < '0' && nivel[2] > '9'))
+        {
+            return 0;
+        }
 
-    strcpy(n, nivel);       //Copia os caracteres da string nível para uma outra string
-    i = atoi(n);            //Transforma a string em número
-
-    if (i <= 100 && i > 0)      //Verifica se o nível é válido
+        return 1;
+    }
+    else if (nivel[0] == '1' && nivel[1] == '0' && nivel[2] == '0')
     {
         return 1;
     }
@@ -637,6 +631,8 @@ void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
         strcat(str, "#");
     }
 
+    str[tam] = '\0';
+
     fprintf(fp, "%s", str);
 }
 
@@ -645,11 +641,11 @@ void gravaChavePrimaria(FILE *fp, Indice *vet, int tam)
 {
     int i;
 
-    fprintf(fp, "1\n");
+    fprintf(fp, "1");
 
     for (i = 0 ; i < tam ; i++)
     {
-        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN+1); 
+        fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN); 
     }
 }
 
@@ -658,7 +654,7 @@ void gravaIndice(FILE *fp, Nome *vet, int tam)
 {
     int i;
 
-    fprintf(fp, "1\n");
+    fprintf(fp, "1");
     
     for (i = 0 ; i < tam ; i++)
     {
@@ -714,7 +710,7 @@ int leituraNomeEquipe(FILE *fp, Nome *vet, int *i)
 Pokemon recuperaPokemon(FILE *fp, Indice *vet, int posicaoVet)
 {
     Pokemon aux;
-    fseek(fp, (vet[posicaoVet].RRN)*192, SEEK_SET);
+    fseek(fp, (vet[posicaoVet].RRN-1)*192, SEEK_SET);
 
     fscanf(fp, "%[^@]s", aux.codigo);
     fscanf(fp, "@%[^@]s", aux.nomePokemon);
@@ -785,7 +781,9 @@ void modificaCP(FILE *fp, Indice *vet, int tam)
 
     pos = buscaChavePrimaria(codigo, vet, 0, tam);
 
-    fseek(fp, (vet[pos].RRN)*192, SEEK_SET);
+    printf("Codigo: %s\nRRN: %d\n", vet[pos].codigo, vet[pos].RRN);
+
+    fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);
 
     fscanf(fp, "%[^@]s", aux.codigo);
     fscanf(fp, "@%[^@]s", aux.nomePokemon);
@@ -816,7 +814,7 @@ void marcaRegistro(FILE *fp, Indice *vet, char *chave, int tam)
 }
 
 /*Função que limpa o banco de dados*/
-int limpaBanco(FILE *fp, Indice *vet, int tam)
+void limpaBanco(FILE *fp, Indice *vet, int tam)
 {
     FILE *novo;
     Pokemon aux;
@@ -824,9 +822,11 @@ int limpaBanco(FILE *fp, Indice *vet, int tam)
 
     novo = fopen("pokemons2.dat", "w");
 
+    reeordenaRRN(vet, tam);
+
     for (i = 0 ; i < tam ; i++)
     {
-        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        if (vet[i].RRN != -1)
         {
             aux = recuperaPokemon(fp, vet, i);
             gravaPokemonNoArquivo(novo, aux);
@@ -834,42 +834,69 @@ int limpaBanco(FILE *fp, Indice *vet, int tam)
     }
 
     fclose(novo);
-    system("rm pokemons.dat");
-    system("mv pokemons2.dat pokemons.dat");
-
-    return 1;
+    remove("pokemons.dat");
+    rename("pokemons2.dat", "pokemons.dat");
 }
 
-/*Função que grava o vetor de indice no arquivo após ter sido feito a limpeza*/
-void gravaChavePrimariaLimpeza(FILE *fp, Indice *vet, int tam)
+/*Função que reeordena o vetor pelo RRN*/
+void reeordenaRRN(Indice *vet, int tam)
 {
-    int i;
+    qsort(vet, tam, sizeof(Indice), compareRRN);
+}
 
-    fprintf(fp, "1\n");
+/*Função de comparação dos códigos para o qsort*/
+int compareRRN(const void *x, const void *y)
+{
+    Indice *m = (Indice*)x;
+    Indice *n = (Indice*)y;
 
-    for (i = 0 ; i < tam ; i++)
+    if (m->RRN < n->RRN)
     {
-        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
-        {
-            fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN+1);
-        }         
+        return -1;
+    }
+    else if (m->RRN > n->RRN)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
     }
 }
 
-/*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe após ter sido feito a limpeza*/
-void gravaIndiceLimpeza(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice, int tam)
+/*Função que reconstroi os indices a partir do arquivo de dados*/
+int reconstroiIndice(FILE *fp, Nome *nome, Nome *equipe, Indice *codigo)
 {
-    int i, busca;
+    int i = 0;
+    Pokemon aux;
 
-    fprintf(fp, "1\n");
-    
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; !feof(fp) ; i++)
     {
-        busca = buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam);
+        fseek(fp, (i+1)*192, SEEK_SET);
 
-        if (busca != -1)
-        {
-            fprintf(fp, "%s %s\n", vetorNomeEquipe[i].codigo, vetorNomeEquipe[i].str);
-        }
+        fscanf(fp, "%[^@]s", aux.codigo);
+        fscanf(fp, "@%[^@]s", aux.nomePokemon);
+        fscanf(fp, "@%[^@]s", aux.tipo);
+        fscanf(fp, "@%[^@]s", aux.cp);
+        fscanf(fp, "@%[^@]s", aux.data);
+        fscanf(fp, "@%[^@]s", aux.hora);
+        fscanf(fp, "@%[^@]s", aux.treinador);
+        fscanf(fp, "@%[^@]s", aux.nivelTreinador);
+        fscanf(fp, "@%[^@]s", aux.nomeEquipe);
+
+        strcpy(codigo[i].codigo, aux.codigo);
+        codigo[i].RRN = i+1;
+
+        strcpy(nome[i].codigo, aux.codigo);
+        strcpy(nome[i].str, aux.nomePokemon);
+
+        strcpy(equipe[i].codigo, aux.codigo);
+        strcpy(equipe[i].str, aux.nomeEquipe);
     }
+
+    ordenaChavePrimaria(codigo, i);
+    ordenaNome(nome, i);
+    ordenaNome(equipe, i);
+
+    return i;        
 }
