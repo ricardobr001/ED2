@@ -16,7 +16,7 @@
 int main()
 {
     int contCodigo = 0, retorno = 0, contNome = 0, contEquipe = 0, op, buscar, listar, okCodigo, okNome, okEquipe;
-    char chave[13];
+    char chave[50];
     Pokemon info, aux;
     Indice codigo[500]; 
     Nome nome[500], equipe[500];
@@ -48,7 +48,7 @@ int main()
         fprintf(fpChavePrimaria, "0\n");
         rewind(fpChavePrimaria);
     }
-
+    
     auxNome = fopen("ipokemon.idx", "r");
 
     if (!auxNome)
@@ -87,6 +87,12 @@ int main()
         fclose(fpNome);
         fclose(fpEquipe);
     }
+    else if (okCodigo == 1 && okNome == 1 && okEquipe == 1)
+    {
+        contCodigo = 0;
+        contNome = 0;
+        contEquipe = 0;
+    }
 
     do
     {
@@ -95,29 +101,27 @@ int main()
         switch (op)     //Switch do menu do opções
         {
             case 1:
-                do
+                info = cadastro();      //Leitura de um pokemon do teclado
+
+                if (!verificaChave(info, codigo, contCodigo))
                 {
-                    info = cadastro();      //Leitura de um pokemon do teclado
+                    printf("ERRO: Já existe um registro com a chave primária: %s.\n", info.codigo);
+                }
+                else
+                {
+                    colocaChavePrimaria(codigo, info.codigo, &contCodigo);       //Colocando o código do pokemon no vetor de código e RRN
+                    colocaNome(nome, info.codigo, info.nomePokemon, &contNome);         //Colocando o nome do pokemon no vetor de código e nome
+                    colocaNome(equipe, info.codigo, info.nomeEquipe, &contEquipe);      //Colocando o nome da equipe do pokemon no vetor de código e equipe                
 
-                    if (!verificaChave(info, codigo, contCodigo))
-                    {
-                        printf("ERRO: Já existe um registro com a chave primária %s.\n", info.codigo);
-                    }
+                    ordenaChavePrimaria(codigo, contCodigo);
+                    ordenaNome(nome, contNome);
+                    ordenaNome(equipe, contEquipe);
 
-                } while (!verificaChave(info, codigo, contCodigo));
-
-                colocaChavePrimaria(codigo, info.codigo, &contCodigo);       //Colocando o código do pokemon no vetor de código e RRN
-                colocaNome(nome, info.codigo, info.nomePokemon, &contNome);         //Colocando o nome do pokemon no vetor de código e nome
-                colocaNome(equipe, info.codigo, info.nomeEquipe, &contEquipe);      //Colocando o nome da equipe do pokemon no vetor de código e equipe                
-
-                ordenaChavePrimaria(codigo, contCodigo);
-                ordenaNome(nome, contNome);
-                ordenaNome(equipe, contEquipe);
-
-                fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
-                fseek(fpPokemonDAT, 0 ,SEEK_END);
-                gravaPokemonNoArquivo(fpPokemonDAT, info);
-                fclose(fpPokemonDAT);
+                    fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
+                    fseek(fpPokemonDAT, 0 ,SEEK_END);
+                    gravaPokemonNoArquivo(fpPokemonDAT, info);
+                    fclose(fpPokemonDAT);
+                }                
             break;
 
             case 2:
@@ -138,6 +142,7 @@ int main()
             case 4:
                 scanf("%d", &buscar);       //Selecionando qual tipo de busca será feita
                 scanf("\n%[^\n]s", chave);      //Lendo a chave para efetuar a busca
+                deixaMaiusculo(chave);
                 fpPokemonDAT = fopen("pokemons.dat", "r+");      //Abrindo o fluxo de leitura e escrita no final do arquivo
                 fseek(fpPokemonDAT, 0 ,SEEK_END);
 

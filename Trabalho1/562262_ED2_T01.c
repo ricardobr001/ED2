@@ -150,6 +150,15 @@ int verificaTipoPokemon(char *tipo)
 
         if (tipo[i] == '/')
         {
+            if (i == 0)
+            {
+                return 0;
+            }
+            else if (tipo[i+1] == '\0')
+            {
+                return 0;
+            }
+            
             flag++;
         }
         
@@ -477,7 +486,7 @@ int verificaChave(Pokemon info, Indice *vet, int tam)
 {
     int pos;
 
-    pos = buscaChavePrimaria(info.codigo, vet, 0, tam);
+    pos = buscaChavePrimaria(info.codigo, vet, 0, tam);     //Busca a chave primaria no vetor
 
     if (pos == -1)
     {
@@ -512,7 +521,12 @@ int buscaChavePrimaria(char *codigo, Indice *vet, int limEsq, int limDir)
 
     if (!strcmp(vet[i].codigo, codigo))     //Se as strings forem iguais, retorna a posição em que se encontra a chave primária encontrada
     {
-        return i;
+        if (vet[i].RRN == -1)       //Se o RRN for -1, retorna -1
+        {
+            return -1;
+        }
+
+        return i;       //Se não retorna a posição
     }
 
     if (limEsq >= limDir)       //Não encontrou a chave
@@ -605,7 +619,7 @@ void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
 {
     int tam = 0;
     char str[194];
-    strcpy(str, info.codigo);
+    strcpy(str, info.codigo);       //Formando a string que terá todos os dados do pokemon
     strcat(str, "@");
     strcat(str, info.nomePokemon);
     strcat(str, "@");
@@ -626,14 +640,14 @@ void gravaPokemonNoArquivo(FILE *fp, Pokemon info)
     
     tam = strlen(str);
 
-    for ( ; tam < 192 ; tam++)
+    for ( ; tam < 192 ; tam++)      //Completando a string com # até ter 192 bytes
     {
         strcat(str, "#");
     }
 
     str[tam] = '\0';
 
-    fprintf(fp, "%s", str);
+    fprintf(fp, "%s", str);     //Printando a string no arquivo
 }
 
 /*Função que grava o vetor de indice no arquivo*/
@@ -641,9 +655,9 @@ void gravaChavePrimaria(FILE *fp, Indice *vet, int tam)
 {
     int i;
 
-    fprintf(fp, "1");
+    fprintf(fp, "1\n");         //Gravando que o indice está atualizado
 
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; i < tam ; i++)     //Gravando o vetor que contem o código e o RRN no arquivo iprimary.idx
     {
         fprintf(fp, "%s %d\n", vet[i].codigo, vet[i].RRN); 
     }
@@ -652,11 +666,11 @@ void gravaChavePrimaria(FILE *fp, Indice *vet, int tam)
 /*Função que grava vetores com chave primaria a partir do nome do pokemon e nome da equipe*/
 void gravaIndice(FILE *fp, Nome *vet, int tam)
 {
-    int i;
+    int i;      
 
-    fprintf(fp, "1");
+    fprintf(fp, "1\n");     //Gravando que o indice está atualizado
     
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; i < tam ; i++)     //Gravando o vetor que contém o código e o nome ou equipe nos arquivos ipokemon.idx e iteam.idx
     {
         fprintf(fp, "%s %s\n", vet[i].codigo, vet[i].str); 
     }
@@ -667,9 +681,9 @@ int leituraChaveRRN(FILE *fp, Indice *vet, int *i)
 {
     int ok;
 
-    fscanf(fp, "%d", &ok);
+    fscanf(fp, "%d", &ok);      //Lendo se o arquivo está atualizado
 
-    if (ok)
+    if (ok == 1)        //Se estiver atualizado le os dados do arquivo
     {
         while (fscanf(fp, "%s %d", vet[(*i)].codigo, &vet[(*i)].RRN) != EOF)
         {            
@@ -689,12 +703,12 @@ int leituraNomeEquipe(FILE *fp, Nome *vet, int *i)
 {
     int ok;
 
-    fscanf(fp, "%d", &ok);
+    fscanf(fp, "%d", &ok);      //Lendo se o arquivo está atualizado
 
-    if (ok)
+    if (ok)     //Se estiver atualizado le os dados do arquivo
     {
         while (fscanf(fp, "%s %s", vet[(*i)].codigo, vet[(*i)].str) != EOF)
-        {            
+        {
             (*i)++;
         }
 
@@ -710,9 +724,9 @@ int leituraNomeEquipe(FILE *fp, Nome *vet, int *i)
 Pokemon recuperaPokemon(FILE *fp, Indice *vet, int posicaoVet)
 {
     Pokemon aux;
-    fseek(fp, (vet[posicaoVet].RRN-1)*192, SEEK_SET);
+    fseek(fp, (vet[posicaoVet].RRN-1)*192, SEEK_SET);       //Indo até a posição em que se encontra o pokemon
 
-    fscanf(fp, "%[^@]s", aux.codigo);
+    fscanf(fp, "%[^@]s", aux.codigo);               //Recuperando o pokemon do arquivo
     fscanf(fp, "@%[^@]s", aux.nomePokemon);
     fscanf(fp, "@%[^@]s", aux.tipo);
     fscanf(fp, "@%[^@]s", aux.cp);
@@ -731,9 +745,9 @@ void listaPokemonCodigo(FILE *fp, Indice *vet, int tam)
     int i;
     Pokemon aux;
 
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; i < tam ; i++)     //Andando o vetor que contém o código
     {
-        if (vet[i].codigo[0] != '*' && vet[i].codigo[1] != '|')
+        if (vet[i].RRN != -1)       //Se o código for diferente de -1, está no pokemons.dat
         {   
             aux = recuperaPokemon(fp, vet, i);
             printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
@@ -747,11 +761,11 @@ void listaPokemonNomeEquipe(FILE *fp, Nome *vetorNomeEquipe, Indice *vetorIndice
     int i, pos;
     Pokemon aux;
 
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; i < tam ; i++)     //Andando o vetor que contém o nome ou equipe e os códigos
     {
-        pos = buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam);
+        pos = buscaChavePrimaria(vetorNomeEquipe[i].codigo, vetorIndice, 0, tam);       //Busca no vetor Indice a posição para recuperar o RRN
 
-        if (pos != -1)
+        if (pos != -1)      //Se a posição for diferente de -1, o pokemon pode ser listado
         {
             aux = recuperaPokemon(fp, vetorIndice, pos);
             printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n", aux.codigo, aux.nomePokemon, aux.tipo, aux.cp, aux.data, aux.hora, aux.treinador, aux.nivelTreinador, aux.nomeEquipe);
@@ -766,9 +780,17 @@ void modificaCP(FILE *fp, Indice *vet, int tam)
     char cp[8], codigo[13];
     int pos;
 
-    scanf("\n%[^\n]s", codigo);
-    
-    do
+    scanf("\n%[^\n]s", codigo);     //lendo o codigo do pokemon que tera o CP modificado
+
+    pos = buscaChavePrimaria(codigo, vet, 0, tam);      //Recuperando a posição que esse pokemon se encontra no vetor indice
+
+    if (pos == -1)      //Se a posição for -1, o pokemon não está no banco
+    {
+        printf("Registro não encontrado!\n");
+        return;
+    }
+
+    do      //Lendo o cp para modificar
     {
         scanf("\n%[^\n]s", cp);
 
@@ -779,11 +801,7 @@ void modificaCP(FILE *fp, Indice *vet, int tam)
 
     } while (!verificaCP(cp));
 
-    pos = buscaChavePrimaria(codigo, vet, 0, tam);
-
-    printf("Codigo: %s\nRRN: %d\n", vet[pos].codigo, vet[pos].RRN);
-
-    fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);
+    fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);      //Indo até a posição para fazer a modificação
 
     fscanf(fp, "%[^@]s", aux.codigo);
     fscanf(fp, "@%[^@]s", aux.nomePokemon);
@@ -795,20 +813,25 @@ void modificaCP(FILE *fp, Indice *vet, int tam)
 /*Função que marca um registro como removido*/
 void marcaRegistro(FILE *fp, Indice *vet, char *chave, int tam)
 {
-    int pos;
+    int pos;        
+    char marca[3];
+    marca[0] = '*';
+    marca[1] = '|';
+    marca[2] = '\0';
 
-    pos = buscaChavePrimaria(chave, vet, 0, tam);
+    deixaMaiusculo(chave);
 
-    if (pos == -1)
+    pos = buscaChavePrimaria(chave, vet, 0, tam);       //Recuperando a posição que esse pokemon se encontra no vetor indice
+
+    if (pos == -1)      //Se a posição for -1, esse pokemon não está no banco
     {
         printf("Registro não encontrado!\n");
     }
-    else
+    else        //Caso contrário esse pokemon está no banco
     {
-        vet[pos].codigo[0] = '*';
-        vet[pos].codigo[1] = '|'; 
-        fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);
-        fprintf(fp, "%c%c", vet[pos].codigo[0], vet[pos].codigo[1]);
+        vet[pos].RRN = -1;
+        fseek(fp, (vet[pos].RRN-1)*192, SEEK_SET);      //Marcando no banco que o pokemon foi "removido"
+        fprintf(fp, "%s", marca);
         fseek(fp, 0, SEEK_END);
     }
 }
@@ -820,22 +843,22 @@ void limpaBanco(FILE *fp, Indice *vet, int tam)
     Pokemon aux;
     int i;
 
-    novo = fopen("pokemons2.dat", "w");
+    novo = fopen("pokemons2.dat", "w");     //Abrindo um novo arquivo para efetuar a cópia
 
-    reeordenaRRN(vet, tam);
+    reeordenaRRN(vet, tam);     //reordenando o vetor de indices a partir do RRN
 
-    for (i = 0 ; i < tam ; i++)
+    for (i = 0 ; i < tam ; i++)     //Andando o vetor de RRN
     {
-        if (vet[i].RRN != -1)
+        if (vet[i].RRN != -1)       //Se o RRN for diferente de -1, pode recuperar do pokemons.dat e efetuar a cópia do pokemon
         {
             aux = recuperaPokemon(fp, vet, i);
             gravaPokemonNoArquivo(novo, aux);
         }
     }
 
-    fclose(novo);
-    remove("pokemons.dat");
-    rename("pokemons2.dat", "pokemons.dat");
+    fclose(novo);       //Fechando o fluxo do novo arquivo
+    remove("pokemons.dat");     //Removendo o banco antigo
+    rename("pokemons2.dat", "pokemons.dat");        //Renomando o novo banco
 }
 
 /*Função que reeordena o vetor pelo RRN*/
@@ -870,12 +893,16 @@ int reconstroiIndice(FILE *fp, Nome *nome, Nome *equipe, Indice *codigo)
     int i = 0;
     Pokemon aux;
 
-    for (i = 0 ; !feof(fp) ; i++)
+    for (i = 0 ; !feof(fp) ; i++)       //Enquanto não for o fim do pokemons.dat, continua executando o laço
     {
-        fseek(fp, (i+1)*192, SEEK_SET);
+        fseek(fp, i*192, SEEK_SET);     //Indo para a posição do próximo registro
 
-        fscanf(fp, "%[^@]s", aux.codigo);
+        fscanf(fp, "%[^@]s", aux.codigo);       //Lendo o pokemon do arquivo
         fscanf(fp, "@%[^@]s", aux.nomePokemon);
+        if (!verificaNome(aux.nomePokemon))
+        {
+            return 0;
+        }
         fscanf(fp, "@%[^@]s", aux.tipo);
         fscanf(fp, "@%[^@]s", aux.cp);
         fscanf(fp, "@%[^@]s", aux.data);
@@ -884,7 +911,7 @@ int reconstroiIndice(FILE *fp, Nome *nome, Nome *equipe, Indice *codigo)
         fscanf(fp, "@%[^@]s", aux.nivelTreinador);
         fscanf(fp, "@%[^@]s", aux.nomeEquipe);
 
-        strcpy(codigo[i].codigo, aux.codigo);
+        strcpy(codigo[i].codigo, aux.codigo);       //Formando os vetor novamente
         codigo[i].RRN = i+1;
 
         strcpy(nome[i].codigo, aux.codigo);
@@ -894,9 +921,21 @@ int reconstroiIndice(FILE *fp, Nome *nome, Nome *equipe, Indice *codigo)
         strcpy(equipe[i].str, aux.nomeEquipe);
     }
 
-    ordenaChavePrimaria(codigo, i);
+    ordenaChavePrimaria(codigo, i);     //Ordenando os vetores
     ordenaNome(nome, i);
     ordenaNome(equipe, i);
 
     return i;        
+}
+
+/*Função que deixa os caracteres maiusculos*/
+void deixaMaiusculo(char *vet)
+{
+    int i = 0;
+
+    while (vet[i] != '\0')        //Enquanto não chegar no final da string, deixa todas as letras maiusculas
+    {
+        vet[i] = toupper(vet[i]);
+        i++;
+    }
 }

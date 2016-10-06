@@ -139,4 +139,7 @@ int compareRRN(const void *x, const void *y);
 /*Função que reconstroi os indices a partir do arquivo de dados*/
 int reconstroiIndice(FILE *fp, Nome *nome, Nome *equipe, Indice *codigo);
 
+/*Função que deixa os caracteres maiusculos*/
+void deixaMaiusculo(char *vet);
+
 #endif
