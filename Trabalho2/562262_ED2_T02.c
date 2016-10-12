@@ -110,6 +110,10 @@ void exibir_registro(int rrn);
 
 /* <<< DECLARE AQUI OS PROTOTIPOS >>> */
 
+/* =======================================
+ * <<< Protótios de funções auxiliraes >>> 
+ * ======================================= */
+
 /*Verifica se os caracteres do nome é válido*/
 int verificaNome(char *nome);
 
@@ -144,7 +148,20 @@ int verificaEquipe(char *equipe);
 void geraChavePrimaria(Pokemon *info);
 
 /*Função que verifica se a chave primaria gerada já existe*/
-int verificaChave(Pokemon info, Indice *vet, int tam);
+//int verificaChave(Pokemon info, Indice *vet, int tam);
+
+/*Função que coloca uma chave primaria a partir de um nome pokemon no vetor ipokemon*/
+void guarda_pokemon(Ipokemon *vet, char *primary_key, char *nome, int i);
+
+/*Função que coloca uma chave primaria a partir de uma equipe no vetor iteam*/
+void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i);
+
+/* =======================================
+ * <<< Protótios de funções principais >>> 
+ * ======================================= */
+
+ /*Função que cadastra um pokemon no sistema*/
+ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregistros);
 
 /* ==========================================================================
  * ============================ FUNÇÃO PRINCIPAL ============================
@@ -591,27 +608,27 @@ int verificaEquipe(char *equipe)
 /*Função que gera a chave primária de um novo registro*/
 void geraChavePrimaria(Pokemon *info)
 {
-    info->codigo[0] = info->nomeEquipe[0];
-    info->codigo[1] = info->treinador[0];
-    info->codigo[2] = info->nomePokemon[0];
-    info->codigo[3] = info->nomePokemon[1];
-    info->codigo[4] = info->data[0];
-    info->codigo[5] = info->data[1];
-    info->codigo[6] = info->data[3];
-    info->codigo[7] = info->data[4];
-    info->codigo[8] = info->hora[0];
-    info->codigo[9] = info->hora[1];
-    info->codigo[10] = info->hora[3];
-    info->codigo[11] = info->hora[4];
-    info->codigo[12] = '\0';
+    info->primary_key[0] = info->nome_equipe[0];
+    info->primary_key[1] = info->nome_treinador[0];
+    info->primary_key[2] = info->nome_pokemon[0];
+    info->primary_key[3] = info->nome_pokemon[1];
+    info->primary_key[4] = info->data_captura[0];
+    info->primary_key[5] = info->data_captura[1];
+    info->primary_key[6] = info->data_captura[3];
+    info->primary_key[7] = info->data_captura[4];
+    info->primary_key[8] = info->hora_captura[0];
+    info->primary_key[9] = info->hora_captura[1];
+    info->primary_key[10] = info->hora_captura[3];
+    info->primary_key[11] = info->hora_captura[4];
+    info->primary_key[12] = '\0';
 }
 
 /*Função que verifica se a chave primaria gerada já existe*/
-int verificaChave(Pokemon info, Indice *vet, int tam)
+/*int verificaChave(Pokemon info, Indice *vet, int tam)
 {
     int pos;
 
-    pos = buscaChavePrimaria(info.codigo, vet, 0, tam);     //Busca a chave primaria no vetor
+    pos = buscaChavePrimaria(info.primary_key, vet, 0, tam);     //Busca a chave primaria no vetor
 
     if (pos == -1)
     {
@@ -619,6 +636,20 @@ int verificaChave(Pokemon info, Indice *vet, int tam)
     }
 
     return 0;
+}
+
+/*Função que coloca uma chave primaria a partir de um nome pokemon no vetor ipokemon*/
+void guarda_pokemon(Ipokemon *vet, char *primary_key, char *nome, int i)
+{
+    strcpy(vet[i].primary_key, primary_key);
+    strcpy(vet[i].nome_pokemon, nome);
+}
+
+/*Função que coloca uma chave primaria a partir de uma equipe no vetor iteam*/
+void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i)
+{
+    strcpy(vet[i].primary_key, primary_key);
+    strcpy(vet[i].nome_equipe, equipe);
 }
 
 
@@ -652,4 +683,116 @@ void exibir_registro(int rrn) {
 }
 
 /* <<< IMPLEMENTE AQUI AS FUNCOES PRINCIPAIS >>> */
+
+/*Função que cadastra um pokemon no sistema*/
+void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregistros)
+{
+	Pokemon info;
+
+    do
+    {
+        scanf("\n%[^\n]s", info.nome_pokemon);
+
+        if (!verificaNome(info.nome_pokemon))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaNome(info.nome_pokemon));
+
+    do
+    {
+        scanf("\n%[^\n]s", info.tipo_pokemon);
+
+        if (!verificaTipoPokemon(info.tipo_pokemon))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaTipoPokemon(info.tipo_pokemon));
+    
+    do
+    {
+        scanf("\n%[^\n]s", info.combat_points);
+        limpa_ent();
+
+        if (!verificaCP(info.combat_points))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaCP(info.combat_points));
+    
+    do
+    {
+        scanf("\n%[^\n]s", info.data_captura);
+        limpa_ent();
+
+        if (!verificaData(info.data_captura))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaData(info.data_captura));
+    
+    do
+    {
+        scanf("\n%[^\n]s", info.hora_captura);
+        limpa_ent();
+
+        if (!verificaHora(info.hora_captura))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaHora(info.hora_captura));
+    
+    do
+    {
+        scanf("\n%[^\n]s", info.nome_treinador);
+
+        if (!verificaTreinador(info.nome_treinador))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while(!verificaTreinador(info.nome_treinador));    
+
+    do
+    {
+        scanf("\n%[^\n]s", info.nivel_treinador);
+        limpa_ent();
+
+        if (!verificaNivel(info.nivel_treinador))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaNivel(info.nivel_treinador));
+
+    do
+    {
+        scanf("\n%[^\n]s", info.nome_equipe);
+        limpa_ent();
+
+        if (!verificaEquipe(info.nome_equipe))
+        {
+            printf(CAMPO_INVALIDO);
+        }
+
+    } while (!verificaEquipe(info.nome_equipe));
+
+    geraChavePrimaria(&info);
+
+	/*if (!inserir(iprimary))
+	{
+		printf(ERRO_PK_REPETIDA, info.primary_key);
+	}
+	else
+	{		*/
+		guarda_pokemon(ipokemon, info.primary_key, info.nome_pokemon, *nregistros);
+		guarda_time(iteam, info.primary_key, info.nome_equipe, *nregistros);
+		(*nregistros)++;
+	//}	
+}
 
