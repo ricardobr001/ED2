@@ -156,12 +156,21 @@ void guarda_pokemon(Ipokemon *vet, char *primary_key, char *nome, int i);
 /*Função que coloca uma chave primaria a partir de uma equipe no vetor iteam*/
 void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i);
 
+/*Função que inicializa a arvore B*/
+void inicializa(Iprimary *arvore);
+
+/*Função que insere uma primary_key na arvore-B*/
+int inserir(Iprimary *p, char *primary_key, int RRN, int ordem);
+
 /* =======================================
  * <<< Protótios de funções principais >>> 
  * ======================================= */
 
  /*Função que cadastra um pokemon no sistema*/
  void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregistros);
+
+/*Função que cria uma arvore B para armazenar os dados primary_key e seu RRN*/
+ void criar_iprimary(Iprimary *iprimary, int nregistros, int ordem);
 
 /* ==========================================================================
  * ============================ FUNÇÃO PRINCIPAL ============================
@@ -652,6 +661,49 @@ void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i)
     strcpy(vet[i].nome_equipe, equipe);
 }
 
+/*Função que inicializa a arvore B*/
+void inicializa(Iprimary *arvore)
+{
+    arvore->raiz = NULL;
+}
+
+/*Função que insere uma primary_key na arvore-B*/
+int inserir(Iprimary *p, char *primary_key, int RRN, int ordem)
+{    
+    node_Btree *novo;
+    Chave *aux = NULL;
+
+    if (p->raiz == NULL)
+    {
+        novo = malloc(sizeof(node_Btree));
+        novo->chave = malloc((ordem - 1)*sizeof(Chave));
+        strcpy(novo->chave[0].pk, primary_key);
+        novo->chave[0].rrn = RRN;
+        novo->desc = malloc(ordem*sizeof(node_Btree*));
+        novo->folha = 1;
+        p->raiz = novo;
+        return 1;
+    }
+    else
+    {
+        inserir_aux();
+
+        if (aux != NULL) //Se a chave promovida não for nula
+        {
+            novo = malloc(sizeof(node_Btree));
+            novo->chave = malloc((ordem - 1)*sizeof(Chave));
+            novo->desc = malloc(ordem*sizeof(node_Btree*));
+            p->raiz->folha = 0;
+            //n[x] <- 1 ------------------- PSEUDOCODIGO ALGORITMO 4
+        }
+    }
+}
+
+/*
+char* inserir_aux(Iprimary *p, char *primary_key, int RRN, int ordem)
+{
+
+}
 
 /* ==========================================================================
  * ================================= FUNÇÕES ================================
@@ -683,6 +735,32 @@ void exibir_registro(int rrn) {
 }
 
 /* <<< IMPLEMENTE AQUI AS FUNCOES PRINCIPAIS >>> */
+
+/*Função que cria uma arvore B para armazenar os dados primary_key e seu RRN*/
+ void criar_iprimary(Iprimary *iprimary, int nregistros, int ordem)
+ {
+     int i;
+     char *p = ARQUIVO;
+     Pokemon aux;
+
+     inicializa(iprimary);
+
+     for (i = 0 ; nregistros > 0 ; i++, nregistros--)
+     {
+         sscanf(p, "%[^@]s", aux.primary_key);       //Lendo o pokemon do p
+         sscanf(p, "@%[^@]s", aux.nome_pokemon);
+         sscanf(p, "@%[^@]s", aux.tipo_pokemon);
+         sscanf(p, "@%[^@]s", aux.combat_points);
+         sscanf(p, "@%[^@]s", aux.data_captura);
+         sscanf(p, "@%[^@]s", aux.hora_captura);
+         sscanf(p, "@%[^@]s", aux.nome_treinador);
+         sscanf(p, "@%[^@]s", aux.nivel_treinador);
+         sscanf(p, "@%[^@]s", aux.nome_equipe);
+         *p = ARQUIVO + 192;
+         geraChavePrimaria(&aux);
+         inserir(iprimary, aux.primary_key, i, ordem);
+     }
+ }
 
 /*Função que cadastra um pokemon no sistema*/
 void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregistros)
