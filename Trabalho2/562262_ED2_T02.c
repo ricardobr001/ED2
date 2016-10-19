@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
 
 /* Tamanho dos campos dos registros */
@@ -109,6 +110,7 @@ int carregar_arquivo();
 void exibir_registro(int rrn);
 
 /* <<< DECLARE AQUI OS PROTOTIPOS >>> */
+void ignore();
 
 /* =======================================
  * <<< Protótios de funções auxiliraes >>> 
@@ -160,13 +162,13 @@ void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i);
 void inicializa(Iprimary *arvore);
 
 /*Função que insere uma primary_key na arvore-B*/
-int inserir(Iprimary *p, char *primary_key, int RRN, int ordem);
+int inserir(Iprimary *p, Chave a, int ordem);
 
 /*Função de inserir auxiliar*/
-char* inserir_aux(Iprimary *p, node_Btree *filho_direito, char *primary_key, int RRN, int ordem);
+void inserir_aux(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem);
 
 /*Função que divide o no da arvore B*/
-char* divide_no(Iprimary *p, node_Btree *filho_direito, char *primary_key, int RRN, int ordem);
+void divide_no(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem);
 
 /* =======================================
  * <<< Protótios de funções principais >>> 
@@ -674,17 +676,17 @@ void inicializa(Iprimary *arvore)
 }
 
 /*Função que insere uma primary_key na arvore-B*/
-int inserir(Iprimary *p, char *primary_key, int RRN, int ordem)
+int inserir(Iprimary *p, Chave a, int ordem)
 {    
     node_Btree *novo, *filho_direito;
-    Chave *aux = NULL;
+    Chave aux;
+    aux = a;
 
     if (p->raiz == NULL)        //Se a raiz for nula, apenas insere a chave na primeira posição do vetor na folha
     {
         novo = malloc(sizeof(node_Btree));
         novo->chave = malloc((ordem - 1)*sizeof(Chave));
-        strcpy(novo->chave[0].pk, primary_key);
-        novo->chave[0].rrn = RRN;
+        novo->chave[0] = a;
         novo->desc = malloc(ordem*sizeof(node_Btree*));
         novo->folha = 1;
         novo->num_chaves = 1;
@@ -693,9 +695,9 @@ int inserir(Iprimary *p, char *primary_key, int RRN, int ordem)
     }
     else        //Se não chama a função inserir_aux
     {
-        aux = inserir_aux(p, filho_direito, primary_key, RRN, ordem);
+        inserir_aux(p, filho_direito, &aux, a, ordem);
 
-        if (aux != NULL) //Se a chave promovida não for nula
+        if (strcmp(aux.pk, a.pk) != 0) //Se a chave promovida não for nula
         {
             novo = malloc(sizeof(node_Btree));
             novo->chave = malloc((ordem - 1)*sizeof(Chave));
@@ -707,10 +709,9 @@ int inserir(Iprimary *p, char *primary_key, int RRN, int ordem)
 }
 
 /*Função de inserir auxiliar*/
-char* inserir_aux(Iprimary *p, node_Btree *filho_direito, char *primary_key, int RRN, int ordem)
+void inserir_aux(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem)
 {
     int i;
-    char *aux = NULL;
 
     if (p->raiz->folha == 0)        //Se for uma folha, entra no if
     {
@@ -718,91 +719,128 @@ char* inserir_aux(Iprimary *p, node_Btree *filho_direito, char *primary_key, int
         {
             i = p->raiz->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
 
-            while (i >= 0 && strcmp(primary_key, p->raiz->chave[i].pk) == -1)       //Enquanto for maior que 0 e a pk a ser inserida for menor que a pk que já está na arvore, executa o while
-            {
-                strcpy(p->raiz->chave[i+1].pk, p->raiz->chave[i].pk);       //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-                p->raiz->chave[i+1].rrn = p->raiz->chave[i].rrn;            //Copia o RRN
+            while (i >= 0 && strcmp(a.pk, p->raiz->chave[i].pk) == -1)       //Enquanto for maior que 0 e a pk a ser inserida for menor que a pk que já está na arvore, executa o while
+            {       
+                p->raiz->chave[i+1] = p->raiz->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
                 p->raiz->desc[i+1] = p->raiz->desc[i];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
                 i--;
             }
 
-            strcpy(p->raiz->chave[i+1].pk, primary_key);       //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-            p->raiz->chave[i+1].rrn = RRN;            //Copia o RRN
+            p->raiz->chave[i+1] = a;            //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
             p->raiz->desc[i+1] = NULL;
 
             p->raiz->num_chaves = p->raiz->num_chaves + 2;      //Atualizando o numero de chaves que este nó possui, somando 1 e devolvendo o -1, logo +2
             
             filho_direito = NULL;
-            return NULL;
+            return;
         }
         else
         {
-            return divide_no();     //Implementar
+            divide_no(p, filho_direito, aux, a, ordem);     //Implementar
         }
     }
     else
     {
         i = p->raiz->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
 
-        while (i >= 0  && strcmp(primary_key, p->raiz->chave[i].pk) == -1)
+        while (i >= 0  && strcmp(a.pk, p->raiz->chave[i].pk) == -1)
         {
             i--;
         }
 
         i++;
-        aux = insere_aux(p, filho_direito, primary_key, RRN, ordem);
+        insere_aux(p, filho_direito, aux, a, ordem);
 
-        if (aux != NULL)        //Se a chave promovida for diferente de NULL, entra no if
+        if (strcmp(aux->pk, a.pk) != 0)        //Se a chave promovida for diferente de NULL, entra no if
         {
-            strcpy(primary_key, aux);       //Copia a chave promovida para a chave a ser inserida
+            strcpy(a.pk, aux->pk);       //Copia a chave promovida para a chave a ser inserida
 
             if(p->raiz->num_chaves < ordem-1)
             {
                 i = p->raiz->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
                 
-                while (i >= 0 && strcmp(primary_key, p->raiz->chave[i].pk) == -1)
+                while (i >= 0 && strcmp(a.pk, p->raiz->chave[i].pk) == -1)
                 {
-                    strcpy(p->raiz->chave[i+1].pk, p->raiz->chave[i].pk);       //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-                    p->raiz->chave[i+1].rrn = p->raiz->chave[i].rrn;            //Copia o RRN
+                    p->raiz->chave[i+1] = p->raiz->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
                     p->raiz->desc[i+2] = p->raiz->desc[i+1];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
                     i--;
                 }
 
-                strcpy(p->raiz->chave[i+1].pk, primary_key);       //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-                p->raiz->chave[i+1].rrn = RRN;            //Copia o RRN
+                p->raiz->chave[i+1] = p->raiz->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
                 p->raiz->desc[i+2] = filho_direito;
                 
                 p->raiz->num_chaves = p->raiz->num_chaves + 2;      //Arrumar, descobrir o que é x[X] no pseudocodigo, ALGORITMO 3
+                /* <<<<<<<<<<<<<<<<<<<<<<<< ????????????????????????????? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
             
-                return NULL;
+                return;
             }
             else
             {
-                return divide_no();
+                divide_no(p, filho_direito, aux, a, ordem);
             }
         }
         else
         {
-            return NULL;
+            return;
         }
     }
 }
 
 /*Função que divide o no da arvore B*/
-char* divide_no(Iprimary *p, node_Btree *filho_direito, char *primary_key, int RRN, int ordem)
+void divide_no(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem)
 {
-    int i, flag = 0;
+    int i, j, flag = 0;
     node_Btree *novo;
 
-    i = p->raiz->num_chaves - 1;
+    i = p->raiz->num_chaves - 1;         //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
+    j = i;
 
-    novo = malloc(sizeof(node_Btree));
+    novo = malloc(sizeof(node_Btree));                  //Alocando o novo nó Y e atribuindo os valores
     novo->chave = malloc((ordem - 1)*sizeof(Chave));
-    strcpy(novo->chave[0].pk, primary_key);
-    novo->chave[0].rrn = RRN;
     novo->desc = malloc(ordem*sizeof(node_Btree*));
-    novo->folha = 1;
-    novo->num_chaves = 1;
+
+    while (j >= 0)       //Efetuando a copia dos dados da folha X para a folha Y
+    {       
+        novo->chave[i] = p->raiz->chave[j];
+        novo->desc[i] = p->raiz->desc[j];
+        j--;
+    }
+
+    novo->folha = p->raiz->folha;
+    novo->num_chaves = floor((ordem-1) / 2);
+
+    for (j = novo->num_chaves-1 ; j <= 0 ; j--)         //Efetuando a copia dos dados da folha X para a folha Y até que a chave primaria seja colocada
+    {
+        if (!flag && strcmp(a.pk, p->raiz->chave[i].pk) == 1)       //Se não tiver colocado a chave primaria ainda e a chave for maior do que a da folha X
+        {                                                           //Coloca a chave na folha y seu ponteiro do filho direito e assinala que ja colocou a chave primaria
+            p->raiz->chave[j] = a;
+            p->raiz->desc[j+1] = filho_direito;
+            flag = 1;
+        }
+        else        //Se não copia a chave da folha X para a Y
+        {
+            novo->chave[j] = p->raiz->chave[i];
+            novo->desc[j+1] = p->raiz->desc[i+1];
+            i--;
+        }
+    }
+
+    if (!flag)      //Se a chave primaria não tiver sido colocada
+    {
+        while(i >= 0 && strcmp(a.pk, p->raiz->chave[i].pk) == -1)       //Enquanto não for o fim do vetor da folha e a chave primaria for maior
+        {                                                               //Do que a chave que se encontra na posição i
+            p->raiz->chave[i+1] = p->raiz->chave[i];            //Empurra os dados para a frente
+            p->raiz->desc[i+2] = p->raiz->desc[i+1];
+            i--;
+        }
+
+        p->raiz->chave[i+1] = a;
+        p->raiz->desc[i+2] = filho_direito;
+    }
+
+    *aux = p->raiz->chave[floor(ordem/2)+1];
+    novo->desc[0] = p->raiz->desc[floor(ordem/2)+2];
+    p->raiz->num_chaves = floor(ordem/2);
 }
 
 /* ==========================================================================
@@ -842,6 +880,7 @@ void exibir_registro(int rrn) {
      int i;
      char *p = ARQUIVO;
      Pokemon aux;
+     Chave a;
 
      inicializa(iprimary);
 
@@ -856,9 +895,11 @@ void exibir_registro(int rrn) {
          sscanf(p, "@%[^@]s", aux.nome_treinador);
          sscanf(p, "@%[^@]s", aux.nivel_treinador);
          sscanf(p, "@%[^@]s", aux.nome_equipe);
-         *p = ARQUIVO + 192;
+         p = p + 192;
          geraChavePrimaria(&aux);
-         inserir(iprimary, aux.primary_key, i, ordem);
+         strcpy(a.pk, aux.primary_key);
+         a.rrn = i;
+         inserir(iprimary, a, ordem);
      }
  }
 
@@ -892,7 +933,6 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", info.combat_points);
-        limpa_ent();
 
         if (!verificaCP(info.combat_points))
         {
@@ -904,7 +944,6 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", info.data_captura);
-        limpa_ent();
 
         if (!verificaData(info.data_captura))
         {
@@ -916,7 +955,6 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", info.hora_captura);
-        limpa_ent();
 
         if (!verificaHora(info.hora_captura))
         {
@@ -939,7 +977,6 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", info.nivel_treinador);
-        limpa_ent();
 
         if (!verificaNivel(info.nivel_treinador))
         {
@@ -951,7 +988,6 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", info.nome_equipe);
-        limpa_ent();
 
         if (!verificaEquipe(info.nome_equipe))
         {
