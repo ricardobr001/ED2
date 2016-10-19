@@ -702,8 +702,12 @@ int inserir(Iprimary *p, Chave a, int ordem)
             novo = malloc(sizeof(node_Btree));
             novo->chave = malloc((ordem - 1)*sizeof(Chave));
             novo->desc = malloc(ordem*sizeof(node_Btree*));
-            p->raiz->folha = 0;
-            //n[x] <- 1 ------------------- PSEUDOCODIGO ALGORITMO 4
+            novo->folha = 0;
+            novo->chave = aux;
+            novo->desc[0] = p->raiz;
+            novo->desc[1] = filho_direito;
+
+            p->raiz = novo;
         }
     }
 }
