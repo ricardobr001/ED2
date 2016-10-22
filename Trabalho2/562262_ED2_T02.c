@@ -162,7 +162,7 @@ void inicializa(Iprimary *arvore, int ordem);
 int inserir(Iprimary *p, Chave a);
 
 /*Função de inserir auxiliar*/
-void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave, int *flag_repetido);
+node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int *flag_repetido);
 
 /*Função que divide o no da arvore B*/
 node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave);
@@ -673,6 +673,7 @@ int inserir(Iprimary *p, Chave a)
     node_Btree *novo, *filho_direito = NULL;
     Chave aux;
     
+    printf("chave a ser inserida: %s\n", a.pk);
 
     if (p->raiz == NULL)        //Se a raiz for nula, apenas insere a chave na primeira posição do vetor na folha
     {
@@ -689,7 +690,7 @@ int inserir(Iprimary *p, Chave a)
     }
     else        //Se não chama a função inserir_aux
     {
-        inserir_aux(p->raiz, filho_direito, &aux, a, &flag, &flag_repetido);
+        filho_direito = inserir_aux(p->raiz, &aux, a, &flag, &flag_repetido);
 
         if (flag) //Se a chave promovida não for nula
         {
@@ -716,13 +717,14 @@ int inserir(Iprimary *p, Chave a)
 }
 
 /*Função de inserir auxiliar*/
-void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave, int *flag_repetido)
+node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int *flag_repetido)
 {
+    node_Btree *filho_direito = NULL;
     int i;
 
     if (p == NULL)      //Se o nó for nulo, retorna sem fazer nenhuma operação
     {
-        return;
+        return NULL;
     }
 
     if (p->folha == 1)        //Se for uma folha, entra no if
@@ -741,19 +743,18 @@ void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, 
             if (!strcmp(a.pk, p->chave[i].pk))      //Se a chave a ser inserida for igual a chave que o while parou
             {                                       //A chave é repetida
                 *flag_repetido = 1;
-                return;
+                return NULL;
             }
 
             p->chave[i+1] = a;            //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
 
             p->num_chaves++;        //Atualizando o numero de chaves que este nó possui
 
-            filho_direito = NULL;
-            return;
+            return NULL;
         }
         else
         {
-            filho_direito = divide_no(p, NULL, aux, a, flag_chave);     //Implementar
+            return divide_no(p, NULL, aux, a, flag_chave);     //Implementar
         }
     }
     else
@@ -766,11 +767,10 @@ void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, 
         }
 
         i++;
-        inserir_aux(p->desc[i], filho_direito, aux, a, flag_chave, flag_repetido);
+        inserir_aux(p->desc[i], aux, a, flag_chave, flag_repetido);
 
-        if (flag_chave)        //Se a chave promovida for diferente de NULL, entra no if
+        if ((*flag_chave))       //Se a chave promovida for diferente de NULL, entra no if
         {
-            printf("ocorreu overflow!\n");
             strcpy(a.pk, aux->pk);       //Copia a chave promovida para a chave a ser inserida
 
             if(p->num_chaves < M-1)
@@ -787,7 +787,7 @@ void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, 
                 if (!strcmp(a.pk, p->chave[i].pk))      //Se a chave a ser inserida for igual a chave que o while parou
                 {                                       //A chave é repetida
                     *flag_repetido = 1;
-                    return;
+                    return NULL;
                 }
 
                 p->chave[i+1] = p->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
@@ -795,16 +795,16 @@ void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, 
                 
                 p->num_chaves = p->num_chaves + 1;       //Atualizando o numero de chaves que este nó possui
             
-                return;
+                return NULL;
             }
             else
             {
-                filho_direito = divide_no(p, filho_direito, aux, a, flag_chave);
+                return divide_no(p, filho_direito, aux, a, flag_chave);
             }
         }
         else
         {
-            return;
+            return NULL;
         }
     }
 }
@@ -815,7 +815,12 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
     int i, j, flag = 0, pos;
     node_Btree *novo;
 
-    pos = floor(M/2);
+    pos = floor((M-1)/2);
+
+    printf("Chaves que irao sofrer o slipt!\n");
+    printf("%s\n", p->chave[0].pk);
+    printf("%s\n\n", p->chave[1].pk);
+    printf("Chave a ser inserida: %s\n", a.pk);
 
     if (p == NULL)
     {
@@ -836,8 +841,8 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
     {
         if (!flag && strcmp(a.pk, p->chave[i].pk) == 1)       //Se não tiver colocado a chave primaria ainda e a chave for maior do que a da folha X
         {                                                           //Coloca a chave na folha y seu ponteiro do filho direito e assinala que ja colocou a chave primaria
-            p->chave[j] = a;
-            p->desc[j+1] = filho_direito;
+            novo->chave[j] = a;
+            novo->desc[j+1] = filho_direito;
             flag = 1;
         }
         else        //Se não copia a chave da folha X para a Y
@@ -861,8 +866,8 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
         p->desc[i+2] = filho_direito;
     }
 
-    *aux = p->chave[pos+1];
-    novo->desc[0] = p->desc[pos+2];
+    *aux = p->chave[pos];
+    novo->desc[0] = p->desc[pos+1];
     p->num_chaves = pos;
     *flag_chave = 1;
     return novo;
@@ -886,6 +891,8 @@ Pokemon recuperar_registro(int rrn)
 
     return aux;
 }
+
+
 
 /* ==========================================================================
  * ================================= FUNÇÕES ================================
@@ -939,6 +946,17 @@ void exibir_registro(int rrn) {
          sscanf(p, "@%[^@]s", aux.nome_treinador);
          sscanf(p, "@%[^@]s", aux.nivel_treinador);
          sscanf(p, "@%[^@]s", aux.nome_equipe);
+         printf("pokemon lido da string:\n");
+         printf("%s\n", aux.primary_key);
+        printf("%s\n", aux.nome_pokemon);
+        printf("%s\n", aux.tipo_pokemon);
+        printf("%s\n", aux.combat_points);
+        printf("%s\n", aux.data_captura);
+        printf("%s\n", aux.hora_captura);
+        printf("%s\n", aux.nome_treinador);
+        printf("%s\n", aux.nivel_treinador);
+        printf("%s\n", aux.nome_equipe);
+        printf("\n");
          p = p + 192;
          geraChavePrimaria(&aux, &a, i);
          inserir(iprimary, a);
@@ -1055,11 +1073,17 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
 
 void inorder(node_Btree *p) {
     int i;
-	if (p != NULL) {
-        for (i = 0 ; i < M-1 ; i++)
+
+	if (p != NULL)
+    {
+        for (i = 0 ; i < M ; i++)
         {
             inorder(p->desc[i]);
-            printf("%s\n", p->chave[i].pk); 
-        }   
-	}
+
+            if (i < p->num_chaves)
+            {
+                printf("%s\n", p->chave[i].pk);
+            }            
+        }
+    }
 }
