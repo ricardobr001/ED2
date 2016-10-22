@@ -237,11 +237,11 @@ int main() {
 		// Listar todos os Pokémons
 		case 4:
 			//listar(iprimary, ipokemon, iteam, nregistros);
+            inorder(iprimary.raiz);
 			break;
 		// Liberar a memória alocada
 		case 5:
 			//apagar_no(&iprimary.raiz);
-            inorder(iprimary.raiz);
 			free(ipokemon);
 			free(iteam);
 			break;
@@ -707,7 +707,7 @@ int inserir(Iprimary *p, Chave a)
             return 1;
         }
 
-        if (!flag_repetido)     //Se a flag de chave repetida for falsa, retorna que inseriu a chave nova com sucesso
+        if (!flag_repetido)
         {
             return 1;
         }
@@ -731,9 +731,10 @@ node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int
     {
         if(p->num_chaves < M-1)       //Se o numero de chaves nesta folha for menor que a ordem-1 da arvore, entra no if
         {
+            printf("inseriu na folha normal!\n");
             i = p->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
 
-            while (i >= 0 && strcmp(a.pk, p->chave[i].pk) == -1)       //Enquanto for maior que 0 e a pk a ser inserida for menor que a pk que já está na arvore, executa o while
+            while (i >= 0 && strcmp(a.pk, p->chave[i].pk) < 0)       //Enquanto for maior que 0 e a pk a ser inserida for menor que a pk que já está na arvore, executa o while
             {       
                 p->chave[i+1] = p->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
                 p->desc[i+1] = p->desc[i];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
@@ -750,10 +751,12 @@ node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int
 
             p->num_chaves++;        //Atualizando o numero de chaves que este nó possui
 
+            *flag_chave = 0;
             return NULL;
         }
         else
         {
+            printf("overflow na folha!\n");
             return divide_no(p, NULL, aux, a, flag_chave);     //Implementar
         }
     }
@@ -761,23 +764,25 @@ node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int
     {
         i = p->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
 
-        while (i >= 0  && strcmp(a.pk, p->chave[i].pk) == -1)
+        while (i >= 0  && strcmp(a.pk, p->chave[i].pk) < 0)
         {
             i--;
         }
 
         i++;
-        inserir_aux(p->desc[i], aux, a, flag_chave, flag_repetido);
+        filho_direito = inserir_aux(p->desc[i], aux, a, flag_chave, flag_repetido);
 
         if ((*flag_chave))       //Se a chave promovida for diferente de NULL, entra no if
         {
+            printf("Chave %s promovida!\n", aux->pk);
             strcpy(a.pk, aux->pk);       //Copia a chave promovida para a chave a ser inserida
 
             if(p->num_chaves < M-1)
             {
+                printf("Só colocar!\n");
                 i = p->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
                 
-                while (i >= 0 && strcmp(a.pk, p->chave[i].pk) == -1)
+                while (i >= 0 && strcmp(a.pk, p->chave[i].pk) < 0)
                 {
                     p->chave[i+1] = p->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
                     p->desc[i+2] = p->desc[i+1];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
@@ -794,16 +799,19 @@ node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int
                 p->desc[i+2] = filho_direito;
                 
                 p->num_chaves = p->num_chaves + 1;       //Atualizando o numero de chaves que este nó possui
-            
+                *flag_chave = 0;
                 return NULL;
             }
             else
             {
+                printf("propagou o overflow!\n");
                 return divide_no(p, filho_direito, aux, a, flag_chave);
             }
         }
         else
         {
+            printf("Não houve overflow!\n");
+            *flag_chave = 0;
             return NULL;
         }
     }
@@ -818,13 +826,15 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
     pos = floor((M-1)/2);
 
     printf("Chaves que irao sofrer o slipt!\n");
-    printf("%s\n", p->chave[0].pk);
-    printf("%s\n\n", p->chave[1].pk);
-    printf("Chave a ser inserida: %s\n", a.pk);
+    for (i = 0 ; i < p->num_chaves ; i++)
+    {
+        printf("%s\n", p->chave[i].pk);
+    }
 
     if (p == NULL)
     {
-        return;
+        *flag_chave = 0;
+        return NULL;
     }
 
     i = p->num_chaves - 1;         //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
@@ -832,14 +842,15 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
     novo = malloc(sizeof(node_Btree));                  //Alocando o novo nó Y e atribuindo os valores
     novo->chave = malloc((M - 1)*sizeof(Chave));
     novo->desc = malloc(M*sizeof(node_Btree*));
-    novo->desc[0] = NULL;
-    novo->desc[1] = NULL;
     novo->folha = p->folha;
     novo->num_chaves = pos;
+    printf("valor (M-1)/2 = %d\n", pos);
 
     for (j = novo->num_chaves-1 ; j >= 0 ; j--)         //Efetuando a copia dos dados da folha X para a folha Y até que a chave primaria seja colocada
     {
-        if (!flag && strcmp(a.pk, p->chave[i].pk) == 1)       //Se não tiver colocado a chave primaria ainda e a chave for maior do que a da folha X
+        printf("valor do j = %d\n", j);
+        printf("Valor da flag = %d\n", flag);
+        if (!flag && strcmp(a.pk, p->chave[i].pk) > 0)       //Se não tiver colocado a chave primaria ainda e a chave for maior do que a da folha X
         {                                                           //Coloca a chave na folha y seu ponteiro do filho direito e assinala que ja colocou a chave primaria
             novo->chave[j] = a;
             novo->desc[j+1] = filho_direito;
@@ -853,14 +864,40 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
         }
     }
 
+    printf("Depois do primeiro FOR\n");
+    printf("chaves do nó X!\n");
+    for (i = 0 ; i < p->num_chaves ; i++)
+    {
+        printf("%s\n", p->chave[i].pk);
+    }
+    printf("chaves do nó Y!\n");
+    for (i = 0 ; i < novo->num_chaves ; i++)
+    {
+        printf("%s\n", novo->chave[i].pk);
+    }
+    printf("\n\n");
+
     if (!flag)      //Se a chave primaria não tiver sido colocada
     {
-        while(i >= 0 && strcmp(a.pk, p->chave[i].pk) == -1)       //Enquanto não for o fim do vetor da folha e a chave primaria for maior
+        while(i >= 0 && strcmp(a.pk, p->chave[i].pk) < 0)       //Enquanto não for o fim do vetor da folha e a chave primaria for maior
         {                                                               //Do que a chave que se encontra na posição i
             p->chave[i+1] = p->chave[i];            //Empurra os dados para a frente
             p->desc[i+2] = p->desc[i+1];
             i--;
         }
+
+        printf("Depois do WHILE\n");
+        printf("chaves do nó X!\n");
+        for (i = 0 ; i < p->num_chaves ; i++)
+        {
+            printf("%s\n", p->chave[i].pk);
+        }
+        printf("chaves do nó Y!\n");
+        for (i = 0 ; i < novo->num_chaves ; i++)
+        {
+            printf("%s\n", novo->chave[i].pk);
+        }
+        printf("\n\n");
 
         p->chave[i+1] = a;
         p->desc[i+2] = filho_direito;
@@ -870,6 +907,17 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
     novo->desc[0] = p->desc[pos+1];
     p->num_chaves = pos;
     *flag_chave = 1;
+
+    printf("chaves do nó X!\n");
+    for (i = 0 ; i < p->num_chaves ; i++)
+    {
+        printf("%s\n", p->chave[i].pk);
+    }
+    printf("chaves do nó Y!\n");
+    for (i = 0 ; i < novo->num_chaves ; i++)
+    {
+        printf("%s\n", novo->chave[i].pk);
+    }
     return novo;
 }
 
@@ -930,35 +978,17 @@ void exibir_registro(int rrn) {
  {
      int i;
      char *p = ARQUIVO;
-     Pokemon aux;
+     char pk[13];
      Chave a;
 
      inicializa(iprimary, ordem);
 
      for (i = 0 ; nregistros > 0 ; i++, nregistros--)
      {
-         sscanf(p, "%[^@]s", aux.primary_key);       //Lendo o pokemon do p
-         sscanf(p, "@%[^@]s", aux.nome_pokemon);
-         sscanf(p, "@%[^@]s", aux.tipo_pokemon);
-         sscanf(p, "@%[^@]s", aux.combat_points);
-         sscanf(p, "@%[^@]s", aux.data_captura);
-         sscanf(p, "@%[^@]s", aux.hora_captura);
-         sscanf(p, "@%[^@]s", aux.nome_treinador);
-         sscanf(p, "@%[^@]s", aux.nivel_treinador);
-         sscanf(p, "@%[^@]s", aux.nome_equipe);
-         printf("pokemon lido da string:\n");
-         printf("%s\n", aux.primary_key);
-        printf("%s\n", aux.nome_pokemon);
-        printf("%s\n", aux.tipo_pokemon);
-        printf("%s\n", aux.combat_points);
-        printf("%s\n", aux.data_captura);
-        printf("%s\n", aux.hora_captura);
-        printf("%s\n", aux.nome_treinador);
-        printf("%s\n", aux.nivel_treinador);
-        printf("%s\n", aux.nome_equipe);
-        printf("\n");
+         sscanf(p, "%[^@]s", pk);       //Lendo o pokemon do pk
+         strcpy(a.pk, pk);
+         a.rrn = i;
          p = p + 192;
-         geraChavePrimaria(&aux, &a, i);
          inserir(iprimary, a);
      }
  }
