@@ -147,10 +147,7 @@ int verificaNivel(char *nivel);
 int verificaEquipe(char *equipe);
 
 /*Função que gera a chave primária de um novo registro*/
-void geraChavePrimaria(Pokemon *info);
-
-/*Função que verifica se a chave primaria gerada já existe*/
-//int verificaChave(Pokemon info, Indice *vet, int tam);
+void geraChavePrimaria(Pokemon *info, Chave *chave, int RRN);
 
 /*Função que coloca uma chave primaria a partir de um nome pokemon no vetor ipokemon*/
 void guarda_pokemon(Ipokemon *vet, char *primary_key, char *nome, int i);
@@ -159,16 +156,20 @@ void guarda_pokemon(Ipokemon *vet, char *primary_key, char *nome, int i);
 void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i);
 
 /*Função que inicializa a arvore B*/
-void inicializa(Iprimary *arvore);
+void inicializa(Iprimary *arvore, int ordem);
 
 /*Função que insere uma primary_key na arvore-B*/
-int inserir(Iprimary *p, Chave a, int ordem);
+int inserir(Iprimary *p, Chave a);
 
 /*Função de inserir auxiliar*/
-void inserir_aux(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem);
+void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave, int *flag_repetido);
 
 /*Função que divide o no da arvore B*/
-void divide_no(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem);
+node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave);
+
+void inorder(node_Btree *p);
+
+Pokemon recuperar_registro(int rrn);
 
 /* =======================================
  * <<< Protótios de funções principais >>> 
@@ -204,7 +205,7 @@ int main() {
 		perror(MEMORIA_INSUFICIENTE);
 		exit(1);
 	}
-	criar_ipokemon(ipokemon, nregistros);
+	//criar_ipokemon(ipokemon, nregistros);
 
 	/* Índice secundário de equipes */
 	Iteam *iteam = (Iteam *) malloc (MAX_REGISTROS * sizeof(Iteam));
@@ -212,7 +213,7 @@ int main() {
 		perror(MEMORIA_INSUFICIENTE);
 		exit(1);
 	}
-	criar_iteam(iteam, nregistros);
+	//criar_iteam(iteam, nregistros);
 
 	/* Execução do programa */
 	int opcao = 0;
@@ -227,19 +228,20 @@ int main() {
 		// Alterar os combat points de um Pokémon
 		case 2:
 			getchar();
-			alterar(iprimary);
+			//alterar(iprimary);
 			break;
 		// Buscar um Pokémon
 		case 3:
-			buscar(iprimary, ipokemon, iteam, nregistros);
+			//buscar(iprimary, ipokemon, iteam, nregistros);
 			break;
 		// Listar todos os Pokémons
 		case 4:
-			listar(iprimary, ipokemon, iteam, nregistros);
+			//listar(iprimary, ipokemon, iteam, nregistros);
 			break;
 		// Liberar a memória alocada
 		case 5:
-			apagar_no(&iprimary.raiz);
+			//apagar_no(&iprimary.raiz);
+            inorder(iprimary.raiz);
 			free(ipokemon);
 			free(iteam);
 			break;
@@ -623,7 +625,7 @@ int verificaEquipe(char *equipe)
 }
 
 /*Função que gera a chave primária de um novo registro*/
-void geraChavePrimaria(Pokemon *info)
+void geraChavePrimaria(Pokemon *info, Chave *chave, int RRN)
 {
     info->primary_key[0] = info->nome_equipe[0];
     info->primary_key[1] = info->nome_treinador[0];
@@ -638,21 +640,9 @@ void geraChavePrimaria(Pokemon *info)
     info->primary_key[10] = info->hora_captura[3];
     info->primary_key[11] = info->hora_captura[4];
     info->primary_key[12] = '\0';
-}
 
-/*Função que verifica se a chave primaria gerada já existe*/
-/*int verificaChave(Pokemon info, Indice *vet, int tam)
-{
-    int pos;
-
-    pos = buscaChavePrimaria(info.primary_key, vet, 0, tam);     //Busca a chave primaria no vetor
-
-    if (pos == -1)
-    {
-        return 1;
-    }
-
-    return 0;
+    strcpy(chave->pk, info->primary_key);
+    chave->rrn = RRN;
 }
 
 /*Função que coloca uma chave primaria a partir de um nome pokemon no vetor ipokemon*/
@@ -670,24 +660,28 @@ void guarda_equipe(Iteam *vet, char *primary_key, char *equipe, int i)
 }
 
 /*Função que inicializa a arvore B*/
-void inicializa(Iprimary *arvore)
+void inicializa(Iprimary *arvore, int ordem)
 {
     arvore->raiz = NULL;
+    M = ordem;
 }
 
 /*Função que insere uma primary_key na arvore-B*/
-int inserir(Iprimary *p, Chave a, int ordem)
-{    
-    node_Btree *novo, *filho_direito;
+int inserir(Iprimary *p, Chave a)
+{   
+    int flag = 0, flag_repetido = 0;
+    node_Btree *novo, *filho_direito = NULL;
     Chave aux;
-    aux = a;
+    
 
     if (p->raiz == NULL)        //Se a raiz for nula, apenas insere a chave na primeira posição do vetor na folha
     {
         novo = malloc(sizeof(node_Btree));
-        novo->chave = malloc((ordem - 1)*sizeof(Chave));
+        novo->chave = malloc((M - 1)*sizeof(Chave));
         novo->chave[0] = a;
-        novo->desc = malloc(ordem*sizeof(node_Btree*));
+        novo->desc = malloc(M*sizeof(node_Btree*));
+        novo->desc[0] = NULL;
+        novo->desc[1] = NULL;
         novo->folha = 1;
         novo->num_chaves = 1;
         p->raiz = novo;
@@ -695,92 +689,117 @@ int inserir(Iprimary *p, Chave a, int ordem)
     }
     else        //Se não chama a função inserir_aux
     {
-        inserir_aux(p, filho_direito, &aux, a, ordem);
+        inserir_aux(p->raiz, filho_direito, &aux, a, &flag, &flag_repetido);
 
-        if (strcmp(aux.pk, a.pk) != 0) //Se a chave promovida não for nula
+        if (flag) //Se a chave promovida não for nula
         {
             novo = malloc(sizeof(node_Btree));
-            novo->chave = malloc((ordem - 1)*sizeof(Chave));
-            novo->desc = malloc(ordem*sizeof(node_Btree*));
+            novo->chave = malloc((M - 1)*sizeof(Chave));
+            novo->desc = malloc(M*sizeof(node_Btree*));
             novo->folha = 0;
-            novo->chave = aux;
+            novo->num_chaves = 1;
+            novo->chave[0] = aux;
             novo->desc[0] = p->raiz;
             novo->desc[1] = filho_direito;
 
             p->raiz = novo;
+            return 1;
         }
+
+        if (!flag_repetido)     //Se a flag de chave repetida for falsa, retorna que inseriu a chave nova com sucesso
+        {
+            return 1;
+        }
+
+        return 0;       //Se não retorna que não conseguiu inserir a chave nova
     }
 }
 
 /*Função de inserir auxiliar*/
-void inserir_aux(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem)
+void inserir_aux(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave, int *flag_repetido)
 {
     int i;
 
-    if (p->raiz->folha == 0)        //Se for uma folha, entra no if
+    if (p == NULL)      //Se o nó for nulo, retorna sem fazer nenhuma operação
     {
-        if(p->raiz->num_chaves < ordem-1)       //Se o numero de chaves nesta folha for menor que a ordem-1 da arvore, entra no if
-        {
-            i = p->raiz->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
+        return;
+    }
 
-            while (i >= 0 && strcmp(a.pk, p->raiz->chave[i].pk) == -1)       //Enquanto for maior que 0 e a pk a ser inserida for menor que a pk que já está na arvore, executa o while
+    if (p->folha == 1)        //Se for uma folha, entra no if
+    {
+        if(p->num_chaves < M-1)       //Se o numero de chaves nesta folha for menor que a ordem-1 da arvore, entra no if
+        {
+            i = p->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
+
+            while (i >= 0 && strcmp(a.pk, p->chave[i].pk) == -1)       //Enquanto for maior que 0 e a pk a ser inserida for menor que a pk que já está na arvore, executa o while
             {       
-                p->raiz->chave[i+1] = p->raiz->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-                p->raiz->desc[i+1] = p->raiz->desc[i];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
+                p->chave[i+1] = p->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
+                p->desc[i+1] = p->desc[i];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
                 i--;
             }
 
-            p->raiz->chave[i+1] = a;            //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-            p->raiz->desc[i+1] = NULL;
+            if (!strcmp(a.pk, p->chave[i].pk))      //Se a chave a ser inserida for igual a chave que o while parou
+            {                                       //A chave é repetida
+                *flag_repetido = 1;
+                return;
+            }
 
-            p->raiz->num_chaves = p->raiz->num_chaves + 2;      //Atualizando o numero de chaves que este nó possui, somando 1 e devolvendo o -1, logo +2
-            
+            p->chave[i+1] = a;            //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
+
+            p->num_chaves++;        //Atualizando o numero de chaves que este nó possui
+
             filho_direito = NULL;
             return;
         }
         else
         {
-            divide_no(p, filho_direito, aux, a, ordem);     //Implementar
+            filho_direito = divide_no(p, NULL, aux, a, flag_chave);     //Implementar
         }
     }
     else
     {
-        i = p->raiz->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
+        i = p->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
 
-        while (i >= 0  && strcmp(a.pk, p->raiz->chave[i].pk) == -1)
+        while (i >= 0  && strcmp(a.pk, p->chave[i].pk) == -1)
         {
             i--;
         }
 
         i++;
-        insere_aux(p, filho_direito, aux, a, ordem);
+        inserir_aux(p->desc[i], filho_direito, aux, a, flag_chave, flag_repetido);
 
-        if (strcmp(aux->pk, a.pk) != 0)        //Se a chave promovida for diferente de NULL, entra no if
+        if (flag_chave)        //Se a chave promovida for diferente de NULL, entra no if
         {
+            printf("ocorreu overflow!\n");
             strcpy(a.pk, aux->pk);       //Copia a chave promovida para a chave a ser inserida
 
-            if(p->raiz->num_chaves < ordem-1)
+            if(p->num_chaves < M-1)
             {
-                i = p->raiz->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
+                i = p->num_chaves-1;      //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
                 
-                while (i >= 0 && strcmp(a.pk, p->raiz->chave[i].pk) == -1)
+                while (i >= 0 && strcmp(a.pk, p->chave[i].pk) == -1)
                 {
-                    p->raiz->chave[i+1] = p->raiz->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-                    p->raiz->desc[i+2] = p->raiz->desc[i+1];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
+                    p->chave[i+1] = p->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
+                    p->desc[i+2] = p->desc[i+1];                      //Copia o ponteiro para a proxima subArvore, junto com a sua pk
                     i--;
                 }
 
-                p->raiz->chave[i+1] = p->raiz->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
-                p->raiz->desc[i+2] = filho_direito;
+                if (!strcmp(a.pk, p->chave[i].pk))      //Se a chave a ser inserida for igual a chave que o while parou
+                {                                       //A chave é repetida
+                    *flag_repetido = 1;
+                    return;
+                }
+
+                p->chave[i+1] = p->chave[i];                    //Copia a pk da posição atual do vetor para a proxima posição livre do vetor
+                p->desc[i+2] = filho_direito;
                 
-                p->raiz->num_chaves = p->raiz->num_chaves + 2;      //Arrumar, descobrir o que é x[X] no pseudocodigo, ALGORITMO 3
-                /* <<<<<<<<<<<<<<<<<<<<<<<< ????????????????????????????? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+                p->num_chaves = p->num_chaves + 1;       //Atualizando o numero de chaves que este nó possui
             
                 return;
             }
             else
             {
-                divide_no(p, filho_direito, aux, a, ordem);
+                filho_direito = divide_no(p, filho_direito, aux, a, flag_chave);
             }
         }
         else
@@ -791,60 +810,81 @@ void inserir_aux(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, in
 }
 
 /*Função que divide o no da arvore B*/
-void divide_no(Iprimary *p, node_Btree *filho_direito, Chave *aux, Chave a, int ordem)
+node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave)
 {
-    int i, j, flag = 0;
+    int i, j, flag = 0, pos;
     node_Btree *novo;
 
-    i = p->raiz->num_chaves - 1;         //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
-    j = i;
+    pos = floor(M/2);
 
-    novo = malloc(sizeof(node_Btree));                  //Alocando o novo nó Y e atribuindo os valores
-    novo->chave = malloc((ordem - 1)*sizeof(Chave));
-    novo->desc = malloc(ordem*sizeof(node_Btree*));
-
-    while (j >= 0)       //Efetuando a copia dos dados da folha X para a folha Y
-    {       
-        novo->chave[i] = p->raiz->chave[j];
-        novo->desc[i] = p->raiz->desc[j];
-        j--;
+    if (p == NULL)
+    {
+        return;
     }
 
-    novo->folha = p->raiz->folha;
-    novo->num_chaves = floor((ordem-1) / 2);
+    i = p->num_chaves - 1;         //Pegando o tamanho do vetor da folha, -1 para não acessar posição não alocada
 
-    for (j = novo->num_chaves-1 ; j <= 0 ; j--)         //Efetuando a copia dos dados da folha X para a folha Y até que a chave primaria seja colocada
+    novo = malloc(sizeof(node_Btree));                  //Alocando o novo nó Y e atribuindo os valores
+    novo->chave = malloc((M - 1)*sizeof(Chave));
+    novo->desc = malloc(M*sizeof(node_Btree*));
+    novo->desc[0] = NULL;
+    novo->desc[1] = NULL;
+    novo->folha = p->folha;
+    novo->num_chaves = pos;
+
+    for (j = novo->num_chaves-1 ; j >= 0 ; j--)         //Efetuando a copia dos dados da folha X para a folha Y até que a chave primaria seja colocada
     {
-        if (!flag && strcmp(a.pk, p->raiz->chave[i].pk) == 1)       //Se não tiver colocado a chave primaria ainda e a chave for maior do que a da folha X
+        if (!flag && strcmp(a.pk, p->chave[i].pk) == 1)       //Se não tiver colocado a chave primaria ainda e a chave for maior do que a da folha X
         {                                                           //Coloca a chave na folha y seu ponteiro do filho direito e assinala que ja colocou a chave primaria
-            p->raiz->chave[j] = a;
-            p->raiz->desc[j+1] = filho_direito;
+            p->chave[j] = a;
+            p->desc[j+1] = filho_direito;
             flag = 1;
         }
         else        //Se não copia a chave da folha X para a Y
         {
-            novo->chave[j] = p->raiz->chave[i];
-            novo->desc[j+1] = p->raiz->desc[i+1];
+            novo->chave[j] = p->chave[i];
+            novo->desc[j+1] = p->desc[i+1];
             i--;
         }
     }
 
     if (!flag)      //Se a chave primaria não tiver sido colocada
     {
-        while(i >= 0 && strcmp(a.pk, p->raiz->chave[i].pk) == -1)       //Enquanto não for o fim do vetor da folha e a chave primaria for maior
+        while(i >= 0 && strcmp(a.pk, p->chave[i].pk) == -1)       //Enquanto não for o fim do vetor da folha e a chave primaria for maior
         {                                                               //Do que a chave que se encontra na posição i
-            p->raiz->chave[i+1] = p->raiz->chave[i];            //Empurra os dados para a frente
-            p->raiz->desc[i+2] = p->raiz->desc[i+1];
+            p->chave[i+1] = p->chave[i];            //Empurra os dados para a frente
+            p->desc[i+2] = p->desc[i+1];
             i--;
         }
 
-        p->raiz->chave[i+1] = a;
-        p->raiz->desc[i+2] = filho_direito;
+        p->chave[i+1] = a;
+        p->desc[i+2] = filho_direito;
     }
 
-    *aux = p->raiz->chave[floor(ordem/2)+1];
-    novo->desc[0] = p->raiz->desc[floor(ordem/2)+2];
-    p->raiz->num_chaves = floor(ordem/2);
+    *aux = p->chave[pos+1];
+    novo->desc[0] = p->desc[pos+2];
+    p->num_chaves = pos;
+    *flag_chave = 1;
+    return novo;
+}
+
+Pokemon recuperar_registro(int rrn)
+{
+    Pokemon aux;
+    char *p = ARQUIVO;
+    p = p + (192 * rrn);
+
+    sscanf(p, "%[^@]s", aux.primary_key);       //Lendo o pokemon do p
+    sscanf(p, "@%[^@]s", aux.nome_pokemon);
+    sscanf(p, "@%[^@]s", aux.tipo_pokemon);
+    sscanf(p, "@%[^@]s", aux.combat_points);
+    sscanf(p, "@%[^@]s", aux.data_captura);
+    sscanf(p, "@%[^@]s", aux.hora_captura);
+    sscanf(p, "@%[^@]s", aux.nome_treinador);
+    sscanf(p, "@%[^@]s", aux.nivel_treinador);
+    sscanf(p, "@%[^@]s", aux.nome_equipe);
+
+    return aux;
 }
 
 /* ==========================================================================
@@ -886,7 +926,7 @@ void exibir_registro(int rrn) {
      Pokemon aux;
      Chave a;
 
-     inicializa(iprimary);
+     inicializa(iprimary, ordem);
 
      for (i = 0 ; nregistros > 0 ; i++, nregistros--)
      {
@@ -900,10 +940,8 @@ void exibir_registro(int rrn) {
          sscanf(p, "@%[^@]s", aux.nivel_treinador);
          sscanf(p, "@%[^@]s", aux.nome_equipe);
          p = p + 192;
-         geraChavePrimaria(&aux);
-         strcpy(a.pk, aux.primary_key);
-         a.rrn = i;
-         inserir(iprimary, a, ordem);
+         geraChavePrimaria(&aux, &a, i);
+         inserir(iprimary, a);
      }
  }
 
@@ -911,8 +949,9 @@ void exibir_registro(int rrn) {
 void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregistros)
 {
 	Pokemon info;
+    Chave chave;
 
-    do
+    do      //Lendo os dados para formar um registro de um pokemon
     {
         scanf("\n%[^\n]s", info.nome_pokemon);
 
@@ -1000,17 +1039,27 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
 
     } while (!verificaEquipe(info.nome_equipe));
 
-    geraChavePrimaria(&info);
+    geraChavePrimaria(&info, &chave, *nregistros);      //Gerando a chave primária do pokemon lido
 
-	/*if (!inserir(iprimary))
+	if (!inserir(iprimary, chave))       //Caso a inserção na árvore-B não ocorra
 	{
-		printf(ERRO_PK_REPETIDA, info.primary_key);
+		printf(ERRO_PK_REPETIDA, info.primary_key);     //Printa que a chave é repetida
 	}
-	else
-	{		*/
-		guarda_pokemon(ipokemon, info.primary_key, info.nome_pokemon, *nregistros);
-		guarda_time(iteam, info.primary_key, info.nome_equipe, *nregistros);
+	else        //Se não completa os dois vetores, time e nome pokemon
+	{		
+		//guarda_pokemon(ipokemon, info.primary_key, info.nome_pokemon, *nregistros);
+		//guarda_time(iteam, info.primary_key, info.nome_equipe, *nregistros);
 		(*nregistros)++;
-	//}	
+	}	
 }
 
+void inorder(node_Btree *p) {
+    int i;
+	if (p != NULL) {
+        for (i = 0 ; i < M-1 ; i++)
+        {
+            inorder(p->desc[i]);
+            printf("%s\n", p->chave[i].pk); 
+        }   
+	}
+}
