@@ -167,6 +167,18 @@ node_Btree* inserir_aux(node_Btree *p, Chave *aux, Chave a, int *flag_chave, int
 /*Função que divide o no da arvore B*/
 node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chave a, int *flag_chave);
 
+/*Função que busca um código pokemon na árvore-B*/
+node_Btree* busca_arvore(node_Btree *p, char *pk, int *pos);
+
+/*Função que ira chamar as funções que ordenam o vetor ipokemon*/
+void ordena_pokemon(Ipokemon *vet, int tam);
+
+/*Quick sort aplicado para ordenar pelo nome do pokemon*/
+void quick_sort_ipokemon_nome(Ipokemon *vet, int esq, int dir);
+
+/*Quick sort aplicado para ordenar pela pk*/
+void quick_sort_ipokemon_pk(Ipokemon *vet, int esq, int dir);
+
 void inorder(node_Btree *p, int altura);
 
 Pokemon recuperar_registro(int rrn);
@@ -181,12 +193,24 @@ Pokemon recuperar_registro(int rrn);
 /*Função que cria uma arvore B para armazenar os dados primary_key e seu RRN*/
  void criar_iprimary(Iprimary *iprimary, int nregistros, int ordem);
 
+/*Função que cria o indice secundário com os nomes dos pokemons*/
+ void criar_ipokemon(Ipokemon *vet, int nregistros);
+
+ /*Função que cria o indice secundário com as equipes*/
+void criar_iteam(Iteam *vet, int nregistros);
+
+/*Função que altera o CP de um pokemon*/
+void alterar(Iprimary p);
+
+/*Função que busca um pokemon por código, nome ou equipe*/
+void buscar(Iprimary p, Ipokemon *vet_pokemon, Iteam *vet_team, int nregistros);
+
 /* ==========================================================================
  * ============================ FUNÇÃO PRINCIPAL ============================
  * =============================== NÃO ALTERAR ============================== */
 int main() {
 
-    int altura = 0;
+    int altura = 0, i;
 	/* Arquivo */
 	int carregarArquivo = 0, nregistros = 0;
 	scanf("%d\n", &carregarArquivo); // 1 (sim) | 0 (nao)
@@ -206,7 +230,7 @@ int main() {
 		perror(MEMORIA_INSUFICIENTE);
 		exit(1);
 	}
-	//criar_ipokemon(ipokemon, nregistros);
+	criar_ipokemon(ipokemon, nregistros);
 
 	/* Índice secundário de equipes */
 	Iteam *iteam = (Iteam *) malloc (MAX_REGISTROS * sizeof(Iteam));
@@ -214,7 +238,7 @@ int main() {
 		perror(MEMORIA_INSUFICIENTE);
 		exit(1);
 	}
-	//criar_iteam(iteam, nregistros);
+	criar_iteam(iteam, nregistros);
 
 	/* Execução do programa */
 	int opcao = 0;
@@ -229,16 +253,21 @@ int main() {
 		// Alterar os combat points de um Pokémon
 		case 2:
 			getchar();
-			//alterar(iprimary);
+			alterar(iprimary);
 			break;
 		// Buscar um Pokémon
 		case 3:
-			//buscar(iprimary, ipokemon, iteam, nregistros);
+			buscar(iprimary, ipokemon, iteam, nregistros);
 			break;
 		// Listar todos os Pokémons
 		case 4:
 			//listar(iprimary, ipokemon, iteam, nregistros);
-            inorder(iprimary.raiz, altura);
+            //inorder(iprimary.raiz, altura);
+            printf("\nVetor ipokemon:\n");
+            for (i = 0 ; i < nregistros ; i++)
+            {
+                printf("%s %s\n", ipokemon[i].primary_key, ipokemon[i].nome_pokemon);
+            }
 			break;
 		// Liberar a memória alocada
 		case 5:
@@ -886,25 +915,161 @@ node_Btree* divide_no(node_Btree *p, node_Btree *filho_direito, Chave *aux, Chav
     return novo;
 }
 
+/*Função que recupera um pokemon da string ARQUIVO*/
 Pokemon recuperar_registro(int rrn)
 {
     Pokemon aux;
     char *p = ARQUIVO;
     p = p + (192 * rrn);
 
-    sscanf(p, "%[^@]s", aux.primary_key);       //Lendo o pokemon do p
-    sscanf(p, "@%[^@]s", aux.nome_pokemon);
-    sscanf(p, "@%[^@]s", aux.tipo_pokemon);
-    sscanf(p, "@%[^@]s", aux.combat_points);
-    sscanf(p, "@%[^@]s", aux.data_captura);
-    sscanf(p, "@%[^@]s", aux.hora_captura);
-    sscanf(p, "@%[^@]s", aux.nome_treinador);
-    sscanf(p, "@%[^@]s", aux.nivel_treinador);
-    sscanf(p, "@%[^@]s", aux.nome_equipe);
+    sscanf(p, "%[^@]s", aux.primary_key);       //Lendo os dados na variavel aux e andando o ponteiro p
+    p = p + TAM_PRIMARY_KEY;
+
+    sscanf(p, "%[^@]s", aux.nome_pokemon);
+    p = p + strlen(aux.nome_pokemon)+1;
+
+    sscanf(p, "%[^@]s", aux.tipo_pokemon);
+    p = p + strlen(aux.tipo_pokemon)+1;
+
+    sscanf(p, "%[^@]s", aux.combat_points);
+    p = p + TAM_CP;
+
+    sscanf(p, "%[^@]s", aux.data_captura);
+    p = p + TAM_DATA;
+
+    sscanf(p, "%[^@]s", aux.hora_captura);
+    p = p + TAM_HORA;
+
+    sscanf(p, "%[^@]s", aux.nome_treinador);
+    p = p + strlen(aux.nome_treinador)+1;
+
+    sscanf(p, "%[^@]s", aux.nivel_treinador);
+    p = p + TAM_NIVEL;
+
+    sscanf(p, "%[^@]s", aux.nome_equipe);
 
     return aux;
 }
 
+/*Função que busca um código pokemon na árvore-B*/
+node_Btree* busca_arvore(node_Btree *p, char *pk, int *pos)
+{
+    int i = 0;
+
+    if (p == NULL)
+    {
+        return NULL;
+    }
+
+    while (i <= p->num_chaves && strcmp(pk, p->chave[i].pk) > 0)
+    {
+        printf("%s, ", p->chave[i].pk);
+        i++;
+    }
+    printf("\n");
+
+    if (i <= p->num_chaves && strcmp(pk, p->chave[i].pk) == 0)
+    {
+        *pos = i;
+        return p;
+    }
+
+    if (p->folha)
+    {
+        return NULL;
+    }
+    else
+    {
+        return busca_arvore(p->desc[i], pk, pos);
+    }
+}
+
+/*Função que ira chamar as funções que ordenam o vetor ipokemon*/
+void ordena_pokemon(Ipokemon *vet, int tam)
+{
+    quick_sort_ipokemon_pk(vet, 0, tam-1);       //Ordenaremos primeiramente pela pk e depois pelo nome
+    quick_sort_ipokemon_nome(vet, 0, tam-1);     //Para o vetor ficar no padrão  
+}
+
+/*Quick sort aplicado para ordenar pela pk*/
+void quick_sort_ipokemon_pk(Ipokemon *vet, int esq, int dir)
+{
+    int pivo, i, j;
+    char aux_nome[TAM_NOME], aux_pk[TAM_PRIMARY_KEY];
+    pivo = esq;
+
+    for (i = esq+1 ; i <= dir ; i++)        //Percorrendo o subvetor da esquerda até a direita
+    {
+        j = i;
+
+        if (strcmp(vet[j].primary_key, vet[pivo].primary_key) < 0)      //Se o vetor na posição j for menor que o vetor no pivo
+        {
+            strcpy(aux_pk, vet[j].primary_key);     //Copiando os valores para uma variável auxiliar
+            strcpy(aux_nome, vet[j].nome_pokemon);
+        
+            while (j > pivo)        //Enquanto j for maior que o pivo
+            {
+                strcpy(vet[j].primary_key, vet[j-1].primary_key);      //Copia todos os pokemons para frente
+                strcpy(vet[j].nome_pokemon, vet[j-1].nome_pokemon);
+                j--;
+            }
+
+            strcpy(vet[j].nome_pokemon, aux_nome);      //Coloca os dados na ultima posição [pivo]
+            strcpy(vet[j].primary_key, aux_pk);
+
+            pivo++;
+        }
+    }
+
+    if (pivo-1 >= esq)
+    {
+        quick_sort_ipokemon_pk(vet, esq, pivo-1);
+    }
+    else if(pivo+1 <= dir)
+    {
+        quick_sort_ipokemon_pk(vet, pivo+1, dir);
+    }
+}
+
+/*Quick sort aplicado para ordenar pelo nome do pokemon*/
+void quick_sort_ipokemon_nome(Ipokemon *vet, int esq, int dir)
+{
+    int pivo, i, j;
+    char aux_nome[TAM_NOME], aux_pk[TAM_PRIMARY_KEY];
+    pivo = esq;
+
+    for (i = esq+1 ; i <= dir ; i++)        //Percorrendo o subvetor da esquerda até a direita
+    {
+        j = i;
+
+        if (strcmp(vet[j].nome_pokemon, vet[pivo].nome_pokemon) < 0)      //Se o vetor na posição j for menor que o vetor no pivo
+        {
+            strcpy(aux_pk, vet[j].primary_key);     //Copiando os valores para uma variável auxiliar
+            strcpy(aux_nome, vet[j].nome_pokemon);
+        
+            while (j > pivo)        //Enquanto j for maior que o pivo
+            {
+                strcpy(vet[j].primary_key, vet[j-1].primary_key);      //Copia todos os pokemons para frente
+                strcpy(vet[j].nome_pokemon, vet[j-1].nome_pokemon);
+                j--;
+            }
+        
+            strcpy(vet[j].nome_pokemon, aux_nome);      //Coloca os dados na ultima posição [pivo]
+            strcpy(vet[j].primary_key, aux_pk);
+
+            pivo++;
+        }
+    }
+
+    if (pivo-1 >= esq)
+    {
+        quick_sort_ipokemon_nome(vet, esq, pivo-1);
+    }
+    else if(pivo+1 <= dir)
+    {
+        quick_sort_ipokemon_nome(vet, pivo+1, dir);
+    }
+}
 
 
 /* ==========================================================================
@@ -957,6 +1122,37 @@ void exibir_registro(int rrn) {
          inserir(iprimary, a);
      }
  }
+
+/*Função que cria o indice secundário com os nomes dos pokemons*/
+void criar_ipokemon(Ipokemon *vet, int nregistros)
+{
+    int i;
+    char *p = ARQUIVO;
+    char pk[13], nome_pokemon[38];
+
+    for (i = 0 ; i < nregistros ; i++)
+    {
+        sscanf(p, "%[^@]s", pk);
+        p = p + TAM_PRIMARY_KEY;
+        sscanf(p, "%[^@]s", nome_pokemon);
+        p = p - TAM_PRIMARY_KEY + 192;
+        guarda_pokemon(vet, pk, nome_pokemon, i);
+    }
+}
+
+/*Função que cria o indice secundário com as equipes*/
+void criar_iteam(Iteam *vet, int nregistros)
+{
+    int i;
+    char *p = ARQUIVO;
+    Pokemon aux;
+
+    for (i = 0 ; i < nregistros ; i++)
+    {
+        aux = recuperar_registro(i);
+        guarda_equipe(vet, aux.primary_key, aux.nome_equipe, i);
+    }
+}
 
 /*Função que cadastra um pokemon no sistema*/
 void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregistros)
@@ -1060,10 +1256,52 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
 	}
 	else        //Se não completa os dois vetores, time e nome pokemon
 	{		
-		//guarda_pokemon(ipokemon, info.primary_key, info.nome_pokemon, *nregistros);
-		//guarda_time(iteam, info.primary_key, info.nome_equipe, *nregistros);
+		guarda_pokemon(ipokemon, info.primary_key, info.nome_pokemon, *nregistros);
+		guarda_equipe(iteam, info.primary_key, info.nome_equipe, *nregistros);
 		(*nregistros)++;
 	}	
+}
+
+/*Função que altera o CP de um pokemon*/
+void alterar(Iprimary p)
+{
+
+}
+
+/*Função que busca um pokemon por código, nome ou equipe*/
+void buscar(Iprimary p, Ipokemon *vet_pokemon, Iteam *vet_team, int nregistros)
+{
+    int op, i;
+    char busca[TAM_NOME];
+    node_Btree *resultado;
+
+    scanf("%d", &op);
+
+    switch (op)
+    {
+        case 1:
+            scanf("%s", busca);
+            resultado = busca_arvore(p.raiz, busca, &i);
+
+            if (resultado == NULL)
+            {
+                printf(REGISTRO_N_ENCONTRADO);
+            }
+            else
+            {
+                exibir_registro(resultado->chave[i].rrn);
+            }
+        break;
+
+        case 2:
+            scanf("\n%[^\n]s", busca);
+            ordena_pokemon(vet_pokemon, nregistros);
+        break;
+
+        case 3:
+
+        break;
+    }
 }
 
 void inorder(node_Btree *p, int altura) {
@@ -1071,14 +1309,13 @@ void inorder(node_Btree *p, int altura) {
 
 	if (p != NULL)
     {
-        
         for (i = 0 ; i < M ; i++)
         {
             inorder(p->desc[i], altura-1);
             
             if (i < p->num_chaves)
             {
-                //printf("altura da arvore: %d\n", altura);
+                printf("altura da arvore: %d\n", altura);
                 printf("%s\n", p->chave[i].pk);
             }            
         }
