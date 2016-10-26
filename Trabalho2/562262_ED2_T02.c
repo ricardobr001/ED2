@@ -177,18 +177,15 @@ node_Btree* busca_arvore(node_Btree *p, char *pk, int *pos);
 void ordena_pokemon(Ipokemon *vet, int tam);
 
 /*Quick sort aplicado para ordenar pelo nome do pokemon*/
-//void quick_sort_ipokemon_nome(Ipokemon *vet, int esq, int dir);
 int compara_nome_ipokemon(const void *x, const void *y);
 
 /*Quick sort aplicado para ordenar pela pk*/
-//void quick_sort_ipokemon_pk(Ipokemon *vet, int esq, int dir);
 int compara_pk_ipokemon(const void *x, const void *y);
 
 /*Função que ira chamar as funções que ordenam o vetor ipokemon*/
 void ordena_time(Iteam *vet, int tam);
 
 /*Quick sort aplicado para ordenar o time*/
-//void quick_sort_time(Iteam *vet, int esq, int dir);
 int compara_pk_iteam(const void *x, const void *y);
 
 /*Função que imprime a árvore-B no formato pre-order*/
@@ -1073,8 +1070,6 @@ node_Btree* busca_arvore(node_Btree *p, char *pk, int *pos)
 /*Função que ira chamar as funções que ordenam o vetor ipokemon*/
 void ordena_pokemon(Ipokemon *vet, int tam)
 {
-    //quick_sort_ipokemon_pk(vet, 0, tam-1);       //Ordenaremos primeiramente pela pk e depois pelo nome
-    //quick_sort_ipokemon_nome(vet, 0, tam-1);     //Para o vetor ficar no padrão
     qsort(vet, tam, sizeof(Ipokemon), compara_pk_ipokemon);
     qsort(vet, tam, sizeof(Ipokemon), compara_nome_ipokemon);
 }
@@ -1095,86 +1090,6 @@ int compara_nome_ipokemon(const void *x, const void *y)
     return strcmp(m->nome_pokemon, n->nome_pokemon);
 }
 
-/*Quick sort aplicado para ordenar pela pk*/
-/*void quick_sort_ipokemon_pk(Ipokemon *vet, int esq, int dir)
-{
-    int pivo, i, j;
-    char aux_nome[TAM_NOME], aux_pk[TAM_PRIMARY_KEY];
-    pivo = esq;
-
-    for (i = esq+1 ; i <= dir ; i++)        //Percorrendo o subvetor da esquerda até a direita
-    {
-        j = i;
-
-        if (strcmp(vet[j].primary_key, vet[pivo].primary_key) < 0)      //Se o vetor na posição j for menor que o vetor no pivo
-        {
-            strcpy(aux_pk, vet[j].primary_key);     //Copiando os valores para uma variável auxiliar
-            strcpy(aux_nome, vet[j].nome_pokemon);
-        
-            while (j > pivo)        //Enquanto j for maior que o pivo
-            {
-                strcpy(vet[j].primary_key, vet[j-1].primary_key);      //Copia todos os pokemons para frente
-                strcpy(vet[j].nome_pokemon, vet[j-1].nome_pokemon);
-                j--;
-            }
-
-            strcpy(vet[j].nome_pokemon, aux_nome);      //Coloca os dados na ultima posição [pivo]
-            strcpy(vet[j].primary_key, aux_pk);
-
-            pivo++;
-        }
-    }
-
-    if (pivo-1 >= esq)
-    {
-        quick_sort_ipokemon_pk(vet, esq, pivo-1);
-    }
-    else if(pivo+1 <= dir)
-    {
-        quick_sort_ipokemon_pk(vet, pivo+1, dir);
-    }
-}*/
-
-/*Quick sort aplicado para ordenar pelo nome do pokemon*/
-/*void quick_sort_ipokemon_nome(Ipokemon *vet, int esq, int dir)
-{
-    int pivo, i, j;
-    char aux_nome[TAM_NOME], aux_pk[TAM_PRIMARY_KEY];
-    pivo = esq;
-
-    for (i = esq+1 ; i <= dir ; i++)        //Percorrendo o subvetor da esquerda até a direita
-    {
-        j = i;
-
-        if (strcmp(vet[j].nome_pokemon, vet[pivo].nome_pokemon) < 0)      //Se o vetor na posição j for menor que o vetor no pivo
-        {
-            strcpy(aux_pk, vet[j].primary_key);     //Copiando os valores para uma variável auxiliar
-            strcpy(aux_nome, vet[j].nome_pokemon);
-        
-            while (j > pivo)        //Enquanto j for maior que o pivo
-            {
-                strcpy(vet[j].primary_key, vet[j-1].primary_key);      //Copia todos os pokemons para frente
-                strcpy(vet[j].nome_pokemon, vet[j-1].nome_pokemon);
-                j--;
-            }
-        
-            strcpy(vet[j].nome_pokemon, aux_nome);      //Coloca os dados na ultima posição [pivo]
-            strcpy(vet[j].primary_key, aux_pk);
-
-            pivo++;
-        }
-    }
-
-    if (pivo-1 >= esq)
-    {
-        quick_sort_ipokemon_nome(vet, esq, pivo-1);
-    }
-    else if(pivo+1 <= dir)
-    {
-        quick_sort_ipokemon_nome(vet, pivo+1, dir);
-    }
-}*/
-
 /*Função que ira chamar as funções que ordenam o vetor ipokemon*/
 void ordena_time(Iteam *vet, int tam)
 {
@@ -1189,46 +1104,6 @@ int compara_pk_iteam(const void *x, const void *y)
 
     return strcmp(m->primary_key, n->primary_key);
 }
-
-/*Quick sort aplicado para ordenar o time*/
-/*void quick_sort_time(Iteam *vet, int esq, int dir)
-{
-    int pivo, i, j;
-    char aux_nome[TAM_NOME], aux_pk[TAM_PRIMARY_KEY];
-    pivo = esq;
-
-    for (i = esq+1 ; i <= dir ; i++)        //Percorrendo o subvetor da esquerda até a direita
-    {
-        j = i;
-
-        if (strcmp(vet[j].primary_key, vet[pivo].primary_key) < 0)      //Se o vetor na posição j for menor que o vetor no pivo
-        {
-            strcpy(aux_pk, vet[j].primary_key);     //Copiando os valores para uma variável auxiliar
-            strcpy(aux_nome, vet[j].nome_equipe);
-        
-            while (j > pivo)        //Enquanto j for maior que o pivo
-            {
-                strcpy(vet[j].primary_key, vet[j-1].primary_key);      //Copia todos os pokemons para frente
-                strcpy(vet[j].nome_equipe, vet[j-1].nome_equipe);
-                j--;
-            }
-
-            strcpy(vet[j].nome_equipe, aux_nome);      //Coloca os dados na ultima posição [pivo]
-            strcpy(vet[j].primary_key, aux_pk);
-
-            pivo++;
-        }
-    }
-
-    if (pivo-1 >= esq)
-    {
-        quick_sort_time(vet, esq, pivo-1);
-    }
-    else if(pivo+1 <= dir)
-    {
-        quick_sort_time(vet, pivo+1, dir);
-    }
-}*/
 
 /*Função que exibe os pokemons na ordem do nome pokemon*/
 void exibe_pokemon(node_Btree *p, Ipokemon *vet, int tam)
@@ -1370,47 +1245,49 @@ node_Btree* busca_arvore_listando(node_Btree *p, char *pk, int *pos)
 {
     int i = 0;
 
-    if (p == NULL)
-    {
+    if (p == NULL) {
         return NULL;
     }
-
-    for (i = 0 ; i < M ; i++)
-    {
-        if (p->num_chaves == 1 && i == 0)
+    else {
+        //printf("numero de chaves desse nó: %d\n", p->num_chaves);
+        for (i = 0 ; i < p->num_chaves ; i++)
         {
-            printf("%s\n", p->chave[i].pk);
+            //printf("prita as chaves do nó!\n");
+            if (p->num_chaves == 1 && i == 0)
+            {
+                printf("%s\n", p->chave[i].pk);
+            }
+            else if (i+1 == p->num_chaves)
+            {
+                printf("%s\n", p->chave[i].pk);
+            }
+            else if (i < p->num_chaves)
+            {
+                printf("%s, ", p->chave[i].pk);
+            }
         }
-        else if (i+1 == p->num_chaves)
+
+        i = 0;
+
+        while (i < p->num_chaves && strcmp(pk, p->chave[i].pk) > 0)     //Andando o vetor do nó até encontrar uma chave igual
         {
-            printf("%s\n", p->chave[i].pk);
+            i++;
         }
-        else if (i < p->num_chaves)
+
+        if (i < p->num_chaves && strcmp(pk, p->chave[i].pk) == 0)       //Se a chave for a que procuramos, retorna o nó
         {
-            printf("%s, ", p->chave[i].pk);
+            *pos = i;
+            return p;
         }
-    }
 
-    i = 0;
-
-    while (i < p->num_chaves && strcmp(pk, p->chave[i].pk) > 0)     //Andando o vetor do nó até encontrar uma chave igual
-    {
-        i++;
-    }
-
-    if (i < p->num_chaves && strcmp(pk, p->chave[i].pk) == 0)       //Se a chave for a que procuramos, retorna o nó
-    {
-        *pos = i;
-        return p;
-    }
-
-    if (p->folha)
-    {
-        return NULL;
-    }
-    else
-    {
-        return busca_arvore(p->desc[i], pk, pos);
+        if (p->folha)
+        {
+            return NULL;
+        }
+        else
+        {
+            return busca_arvore_listando(p->desc[i], pk, pos);
+        }
     }
 }
 
@@ -1537,6 +1414,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do      //Lendo os dados para formar um registro de um pokemon
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_NOME-1] = '\0';
 
         if (!verificaNome(aux))
         {
@@ -1550,6 +1428,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_NOME-1] = '\0';
 
         if (!verificaTipoPokemon(aux))
         {
@@ -1563,6 +1442,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_CP-1] = '\0';
 
         if (!verificaCP(aux))
         {
@@ -1576,6 +1456,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_DATA-1] = '\0';
 
         if (!verificaData(aux))
         {
@@ -1589,6 +1470,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_HORA-1] = '\0';
 
         if (!verificaHora(aux))
         {
@@ -1602,6 +1484,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_NOME-1] = '\0';
 
         if (!verificaTreinador(aux))
         {
@@ -1615,6 +1498,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_NIVEL-1] = '\0';
 
         if (!verificaNivel(aux))
         {
@@ -1628,6 +1512,7 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     do
     {
         scanf("\n%[^\n]s", aux);
+        aux[TAM_NOME-1] = '\0';
 
         if (!verificaEquipe(aux))
         {
@@ -1665,6 +1550,7 @@ void alterar(Iprimary p)
     node_Btree *resultado;
 
     scanf("\n%[^\n]s", aux_pk);
+    aux_pk[TAM_PRIMARY_KEY] = '\0';
 
     if (strlen(aux_pk) > TAM_PRIMARY_KEY)
     {
@@ -1674,6 +1560,7 @@ void alterar(Iprimary p)
     do
     {
         scanf("\n%[^\n]s", aux_cp);
+        aux_cp[TAM_CP] = '\0';
 
         if (!verificaCP(aux_cp))
         {
@@ -1706,7 +1593,8 @@ void buscar(Iprimary p, Ipokemon *vet_pokemon, Iteam *vet_team, int nregistros)
     switch (op)
     {
         case 1:
-            scanf("%s", busca);
+            scanf("\n%[^\n]s", busca);
+            busca[TAM_PRIMARY_KEY-1] = '\0';
             printf(NOS_PERCORRIDOS, busca);
             resultado = busca_arvore_listando(p.raiz, busca, &i);
 
