@@ -206,10 +206,19 @@ Pokemon recuperar_registro(int rrn);
 void alterar_arquivo(Pokemon info, int rrn);
 
 /*Função que procura um pokemon no vetor ipokemon*/
-void busca_ipokemon(Ipokemon *vet, char *nome, int tam);
+int busca_ipokemon(Ipokemon *vet, char *nome, int tam);
+
+/*Função que exibe os pokemons do vetor Ipokemon da função busca*/
+void exibe_pokemon_busca(Iprimary p, Ipokemon *vet, char *nome, int pos, int tam);
 
 /*Função que procura por uma equipe no vetor iteam*/
-void busca_iteam(Iteam *vet, char *nome, int tam);
+int busca_iteam(Iteam *vet, char *nome, int tam);
+
+/*Função que exibe os pokemons do vetor Iteam da função busca*/
+void exibe_time_busca(Iprimary p, Iteam *vet, char *nome, int pos, int tam);
+
+/*Função que busca um código pokemon na árvore-B e lista seus nós*/
+node_Btree* busca_arvore_listando(node_Btree *p, char *pk, int *pos);
 
 /* =======================================
  * <<< Protótios de funções principais >>> 
@@ -411,7 +420,10 @@ int verificaCP(char *cp)
     {
         return 0;
     }
-    
+    else if (cp[7] != '\0')
+    {
+        return 0;
+    }    
 
     return 1;
 }
@@ -503,6 +515,10 @@ int verificaData(char *data)
             return 0;
         }
     }
+    else if (data[8] != '\0')
+    {
+        return 0;
+    }
 
     return 1;       //Retorna que é uma data válida
 }
@@ -593,6 +609,10 @@ int verificaHora(char *hora)
     {
         return 0;
     }
+    else if (hora[5] != '\0')
+    {
+        return 0;
+    }
     return 1;
 }
 
@@ -641,6 +661,10 @@ int verificaNivel(char *nivel)
     else if (nivel[0] == '1' && nivel[1] == '0' && nivel[2] == '0')
     {
         return 1;
+    }
+    else if (nivel[3] != '\0')
+    {
+        return 0;
     }
 
     return 0;
@@ -1297,24 +1321,125 @@ int busca_iteam(Iteam *vet, char *nome, int tam)
     return -1;
 }
 
-/*Função que exibe os pokemons da função busca*/
-void exibe_pokemon_busca(Iprimary *p, Ipokemon *vet, int pos, int tam)
+/*Função que exibe os pokemons do vetor Ipokemon da função busca*/
+void exibe_pokemon_busca(Iprimary p, Ipokemon *vet, char *nome, int pos, int tam)
 {
-    int i;
+    int i, flag;
+    node_Btree *res;
+
+    for (i = pos ; i < tam ; i++)
+    {
+        flag = strcmp(vet[i].nome_pokemon, nome);
+
+        if (flag == 0)     //Se o pokemon for o mesmo, imprime este pokemon
+        {
+            res = busca_arvore(p.raiz, vet[i].primary_key, &pos);
+            exibir_registro(res->chave[pos].rrn);
+        }
+        else      //Se não sai da função
+        {
+            return;
+        }
+    }
+}
+
+/*Função que exibe os pokemons do vetor Iteam da função busca*/
+void exibe_time_busca(Iprimary p, Iteam *vet, char *nome, int pos, int tam)
+{
+    int i, flag;
     node_Btree *res;
 
     for (i = pos ; i < tam ; i++)
     {
         flag = strcmp(vet[i].nome_equipe, nome);
 
-        if (flag == 0)     //Se as strings forem iguais, retorna a posição em que se encontra a chave primária encontrada
+        if (flag == 0)     //Se a equipe for a mesma, imprime este pokemon
         {
-            res = busca_arvore()
+            res = busca_arvore(p.raiz, vet[i].primary_key, &pos);
+            exibir_registro(res->chave[pos].rrn);
         }
-        else if (flag > 0)
+        else        //Se não sai da função
         {
             return;
         }
+    }
+}
+
+/*Função que busca um código pokemon na árvore-B e lista seus nós*/
+node_Btree* busca_arvore_listando(node_Btree *p, char *pk, int *pos)
+{
+    int i = 0;
+
+    if (p == NULL)
+    {
+        return NULL;
+    }
+
+    for (i = 0 ; i < M ; i++)
+    {
+        if (p->num_chaves == 1 && i == 0)
+        {
+            printf("%s\n", p->chave[i].pk);
+        }
+        else if (i+1 == p->num_chaves)
+        {
+            printf("%s\n", p->chave[i].pk);
+        }
+        else if (i < p->num_chaves)
+        {
+            printf("%s, ", p->chave[i].pk);
+        }
+    }
+
+    i = 0;
+
+    while (i < p->num_chaves && strcmp(pk, p->chave[i].pk) > 0)     //Andando o vetor do nó até encontrar uma chave igual
+    {
+        i++;
+    }
+
+    if (i < p->num_chaves && strcmp(pk, p->chave[i].pk) == 0)       //Se a chave for a que procuramos, retorna o nó
+    {
+        *pos = i;
+        return p;
+    }
+
+    if (p->folha)
+    {
+        return NULL;
+    }
+    else
+    {
+        return busca_arvore(p->desc[i], pk, pos);
+    }
+}
+
+/*Função que imprime a árvore-B no formato pre-order*/
+void pre_order(node_Btree *p, int altura) {
+    int i;
+
+	if (p != NULL)
+    {
+        printf("%d - ", altura);
+        for (i = 0 ; i < M ; i++)
+        {
+            if (p->num_chaves == 1 && i == 0)
+            {
+                printf("%s\n", p->chave[i].pk);
+            }
+            else if (i+1 == p->num_chaves)
+            {
+                printf("%s\n", p->chave[i].pk);
+            }
+            else if (i < p->num_chaves)
+            {
+                printf("%s, ", p->chave[i].pk);
+            }
+        }
+        for (i = 0 ; i <= p->num_chaves ; i++)
+        {
+            pre_order(p->desc[i], altura+1);
+        }         
     }
 }
 
@@ -1406,95 +1531,112 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
     int lixo=0;
 	Pokemon info;
     Chave chave;
+    char aux[100];
     node_Btree *busca;
 
     do      //Lendo os dados para formar um registro de um pokemon
     {
-        scanf("\n%[^\n]s", info.nome_pokemon);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaNome(info.nome_pokemon))
+        if (!verificaNome(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaNome(info.nome_pokemon));
+    } while (!verificaNome(aux));
+
+    strcpy(info.nome_pokemon, aux);
 
     do
     {
-        scanf("\n%[^\n]s", info.tipo_pokemon);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaTipoPokemon(info.tipo_pokemon))
+        if (!verificaTipoPokemon(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaTipoPokemon(info.tipo_pokemon));
+    } while (!verificaTipoPokemon(aux));
+
+    strcpy(info.tipo_pokemon, aux);
     
     do
     {
-        scanf("\n%[^\n]s", info.combat_points);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaCP(info.combat_points))
+        if (!verificaCP(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaCP(info.combat_points));
+    } while (!verificaCP(aux));
+
+    strcpy(info.combat_points, aux);
     
     do
     {
-        scanf("\n%[^\n]s", info.data_captura);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaData(info.data_captura))
+        if (!verificaData(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaData(info.data_captura));
+    } while (!verificaData(aux));
+
+    strcpy(info.data_captura, aux);
     
     do
     {
-        scanf("\n%[^\n]s", info.hora_captura);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaHora(info.hora_captura))
+        if (!verificaHora(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaHora(info.hora_captura));
+    } while (!verificaHora(aux));
+
+    strcpy(info.hora_captura, aux);
     
     do
     {
-        scanf("\n%[^\n]s", info.nome_treinador);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaTreinador(info.nome_treinador))
+        if (!verificaTreinador(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while(!verificaTreinador(info.nome_treinador));    
+    } while(!verificaTreinador(aux));
+
+    strcpy(info.nome_treinador, aux);  
 
     do
     {
-        scanf("\n%[^\n]s", info.nivel_treinador);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaNivel(info.nivel_treinador))
+        if (!verificaNivel(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaNivel(info.nivel_treinador));
+    } while (!verificaNivel(aux));
+
+    strcpy(info.nivel_treinador, aux);
 
     do
     {
-        scanf("\n%[^\n]s", info.nome_equipe);
+        scanf("\n%[^\n]s", aux);
 
-        if (!verificaEquipe(info.nome_equipe))
+        if (!verificaEquipe(aux))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaEquipe(info.nome_equipe));
+    } while (!verificaEquipe(aux));
+
+    strcpy(info.nome_equipe, aux);
 
     geraChavePrimaria(&info, &chave, *nregistros);      //Gerando a chave primária do pokemon lido
 
@@ -1518,23 +1660,29 @@ void cadastrar(Iprimary *iprimary, Ipokemon *ipokemon, Iteam *iteam, int *nregis
 void alterar(Iprimary p)
 {
     int i;
-    Pokemon aux;
+    char aux_pk[100], aux_cp[50];
+    Pokemon info;
     node_Btree *resultado;
 
-    scanf("\n%[^\n]s", aux.primary_key);
+    scanf("\n%[^\n]s", aux_pk);
+
+    if (strlen(aux_pk) > TAM_PRIMARY_KEY)
+    {
+        aux_pk[TAM_PRIMARY_KEY] = '\0';
+    }
 
     do
     {
-        scanf("\n%[^\n]s", aux.combat_points);
+        scanf("\n%[^\n]s", aux_cp);
 
-        if (!verificaCP(aux.combat_points))
+        if (!verificaCP(aux_cp))
         {
             printf(CAMPO_INVALIDO);
         }
 
-    } while (!verificaCP(aux.combat_points));
+    } while (!verificaCP(aux_cp));
 
-    resultado = busca_arvore(p.raiz, aux.primary_key, &i);
+    resultado = busca_arvore(p.raiz, aux_pk, &i);
 
     if (resultado == NULL)
     {
@@ -1542,7 +1690,7 @@ void alterar(Iprimary p)
     }
     else
     {
-        alterar_arquivo(aux, resultado->chave[i].rrn);
+        alterar_arquivo(info, resultado->chave[i].rrn);
     }
 }
 
@@ -1559,7 +1707,8 @@ void buscar(Iprimary p, Ipokemon *vet_pokemon, Iteam *vet_team, int nregistros)
     {
         case 1:
             scanf("%s", busca);
-            resultado = busca_arvore(p.raiz, busca, &i);
+            printf(NOS_PERCORRIDOS, busca);
+            resultado = busca_arvore_listando(p.raiz, busca, &i);
 
             if (resultado == NULL)
             {
@@ -1575,14 +1724,28 @@ void buscar(Iprimary p, Ipokemon *vet_pokemon, Iteam *vet_team, int nregistros)
             scanf("\n%[^\n]s", busca);
             ordena_pokemon(vet_pokemon, nregistros);
             i = busca_ipokemon(vet_pokemon, busca, nregistros);
-            exibe_pokemon_busca(p.raiz, vet_pokemon, i, nregistros);
+            if (i == -1)
+            {
+                printf(REGISTRO_N_ENCONTRADO);
+            }
+            else
+            {
+                exibe_pokemon_busca(p, vet_pokemon, busca, i, nregistros);
+            }
         break;
 
         case 3:
             scanf("\n%[^\n]s", busca);
             ordena_time(vet_team, nregistros);
             i = busca_iteam(vet_team, busca, nregistros);
-            exibe_time_busca(p.raiz, vet_team, i, nregistros);
+            if(i == -1)
+            {
+                printf(REGISTRO_N_ENCONTRADO);
+            }
+            else
+            {
+                exibe_time_busca(p, vet_team, busca, i, nregistros);
+            }
         break;
     }
 }
@@ -1613,31 +1776,5 @@ void listar(Iprimary p, Ipokemon *vet_pokemon, Iteam *vet_time, int tam)
     }
 }
 
-/*Função que imprime a árvore-B no formato pre-order*/
-void pre_order(node_Btree *p, int altura) {
-    int i;
-
-	if (p != NULL)
-    {
-        printf("%d - ", altura);
-        for (i = 0 ; i < M ; i++)
-        {
-            if (p->num_chaves == 1 && i == 0)
-            {
-                printf("%s\n", p->chave[i].pk);
-            }
-            else if (i+1 == p->num_chaves)
-            {
-                printf("%s\n", p->chave[i].pk);
-            }
-            else if (i < p->num_chaves)
-            {
-                printf("%s, ", p->chave[i].pk);
-            }
-        }
-        for (i = 0 ; i <= p->num_chaves ; i++)
-        {
-            pre_order(p->desc[i], altura+1);
-        }         
-    }
-}
+/*função que libera a arvore-B alocada*/
+//void apagar_no(I)
