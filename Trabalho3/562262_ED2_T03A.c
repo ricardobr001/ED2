@@ -488,6 +488,7 @@ void cadastrar(Hashtable *t)
 /*Função que altera o CP de um pokemon*/
 void alterar(Hashtable t)
 {
+    //printf("entrou na função alterar o cp!\n");
     int resultado;
     char aux_pk[100], aux_cp[50];
     Pokemon info;
@@ -496,6 +497,7 @@ void alterar(Hashtable t)
     aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
     deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
     resultado = busca_tabela(&t, aux_pk);       //Efetuando a busca da primary_key na tabela
+    //printf("posição da busca: %d\n\n", resultado);
 
     if (resultado == -1)      //Se o resultado da busca for -1
     {
@@ -555,9 +557,9 @@ void buscar(Hashtable t)
     scanf("\n%[^\n]s", aux_pk);                 //Lendo a primary_key
     aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
     deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
-    printf("buscando pela chave %s\n", aux_pk);
+    //printf("buscando pela chave %s\n", aux_pk);
     resultado = busca_tabela(&t, aux_pk);       //Efetuando a busca da primary_key na tabela
-    printf("posição que a busca retornou: %d\n", resultado);
+    //printf("posição que a busca retornou: %d\n", resultado);
 
     if (resultado == -1)      //Se o resultado da busca for -1
     {
@@ -581,7 +583,7 @@ void remover(Hashtable *t)
     aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
     deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
     resultado = busca_tabela(t, aux_pk);       //Efetuando a busca da primary_key na tabela
-    printf("retornou a posição: %d\n", resultado);
+    //printf("retornou a posição: %d\n", resultado);
 
     if (resultado == -1)      //Se o resultado da busca for -1
     {
@@ -593,7 +595,7 @@ void remover(Hashtable *t)
         t->v[resultado].pk[0] = '*';        //Marcando que esse pokemon foi removido na sua pk
         t->v[resultado].pk[1] = '|';        
         t->v[resultado].estado = REMOVIDO;      //Marcando também no seu estado
-        printf("chave: %s\nEstado: %d\n", t->v[resultado].pk, t->v[resultado].estado);
+        //printf("chave: %s\nEstado: %d\n", t->v[resultado].pk, t->v[resultado].estado);
     }
 }
 
@@ -1087,8 +1089,16 @@ int inserir(Hashtable *t, Chave a, int pos)
 	}
 	else
 	{
-		pos++;		//Como a posição está ocupada, pegamos a próxima
-		i++;		//Já houve uma colisão
+        if (pos == t->tam-1)      //Se a posição atual for a última
+        {
+            pos = 0;    //Voltamos para o começo da tabela
+        }
+        else       //Caso contrário
+        {
+            pos++;		//Como a posição está ocupada, pegamos a próxima
+        }
+
+        i++;		//Já houve uma colisão
 
 		while (t->v[pos].estado == OCUPADO && pos != aux)		//Enquanto a posição estiver ocupada, executa o laço
 		{
@@ -1112,6 +1122,7 @@ int inserir(Hashtable *t, Chave a, int pos)
 		else		//Se não inserimos o valor na tabela
 		{
             t->v[pos] = a;
+            //printf("colocou na posição %d e houveram %d colisões\n\n", pos, i);
 			return i;		//Retornamos quantas colisões aconteceram
 		}
 	}
@@ -1183,21 +1194,31 @@ int busca_tabela(Hashtable *t, char *pk)
 {
 	int pos, aux;
 
-    printf("chave: %s\n", pk);
+    //printf("chave: %s\n", pk);
 	pos = hash(pk, t->tam);
-    printf("posiçao: %d\n", pos);
+    //printf("posiçao: %d\n", pos);
 	aux = pos;
+    //printf("aux = %d\n", aux);
     
     if (strcmp(t->v[pos].pk, pk) == 0)		//Se a pk na posição for a pk procurada, retorna essa posição
     {
+        //printf("posição %d, chave %s, chave procurada %s\n\n", pos, t->v[pos].pk, pk);
         return pos;
     }
     else       //Se a chave não estiver na posição correta, procuramos pela tabela 
     {
-        pos++;      //Verificamos a próxima posição
-
-        while (t->v[pos].estado == OCUPADO && pos != aux)		//Enquanto a posição estiver ocupada, executa o laço
+        if (pos == t->tam-1)      //Se a posição atual for a última
         {
+            pos = 0;    //Voltamos para o começo da tabela
+        }
+        else       //Caso contrário
+        {
+            pos++;		//Como a posição está ocupada, pegamos a próxima
+        }
+
+        while ((t->v[pos].estado == OCUPADO || t->v[pos].estado == REMOVIDO) && pos != aux)		//Enquanto a posição estiver ocupada e a posição atual não for igual a primeira, executa o laço
+        {
+            //printf("posição %d, chave %s, chave procurada %s\n\n", pos, t->v[pos].pk, pk);
             if (strcmp(t->v[pos].pk, pk) == 0)		//Se a pk na posição for a pk procurada, retorna essa posição
             {
                 return pos;
@@ -1205,7 +1226,7 @@ int busca_tabela(Hashtable *t, char *pk)
 
             if (pos == t->tam-1)		//Se a posição for a última
             {
-                pos = -1;		//Vamos para a primeira posição da tabela, pois a tabela é circular
+                pos = 0;		//Vamos para a primeira posição da tabela, pois a tabela é circular
             }			
             else
             {
@@ -1214,14 +1235,7 @@ int busca_tabela(Hashtable *t, char *pk)
         }
     }
 
-	if (pos == aux)		//Se paramos o laço e voltamos para a primeira posição
-	{
-		return -1;		//A chave procurada não está na tabela
-	}
-	else		//Se não encontramos a pk
-	{
-		return pos;		//Retornamos a posição na qual a pk se encontra
-	}
+	return -1;      //Caso não tiver entrado no if das chaves serem iguais, com certeza a chave não está na tabela
 }
 
 /*Altera o CP de um pokemon na string ARQUIVO*/
