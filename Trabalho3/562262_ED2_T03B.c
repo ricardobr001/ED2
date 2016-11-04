@@ -5,8 +5,8 @@
  *
  * Trabalho 03B - Hashing com encadeamento
  *
- * RA:
- * Aluno:
+ * RA: 562262
+ * Aluno: Ricardo Mendes Leal Junior
  * ========================================================================== */
 
 /* Bibliotecas */
