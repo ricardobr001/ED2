@@ -330,7 +330,7 @@ int prox_primo(int num)
 /*Função que cria a tabela Hash*/
 void criar_tabela(Hashtable *t, int tam)
 {
-	t->tam = tam;		//Colocando o tamanho da tabela na tabela
+    t->tam = tam;		//Colocando o tamanho da tabela na tabela
 	t->v = calloc(tam, sizeof(Chave));		//Alocando o vetor de chaves e inicializando tudo com 0
 }
 
