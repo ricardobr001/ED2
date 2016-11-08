@@ -330,8 +330,15 @@ int prox_primo(int num)
 /*Função que cria a tabela Hash*/
 void criar_tabela(Hashtable *t, int tam)
 {
+    int i;
+
     t->tam = tam;		//Colocando o tamanho da tabela na tabela
-	t->v = calloc(tam, sizeof(Chave));		//Alocando o vetor de chaves e inicializando tudo com 0
+	t->v = malloc(tam*sizeof(Chave));		//Alocando o vetor de chaves e inicializando tudo com 0
+
+    for (i = 0 ; i < t->tam ; i++)
+    {
+        t->v[i].estado = LIVRE;
+    }
 }
 
 /*Função que carrega os valores da string ARQUIVO na tabela*/
@@ -595,6 +602,11 @@ void remover(Hashtable *t)
         t->v[resultado].pk[0] = '*';        //Marcando que esse pokemon foi removido na sua pk
         t->v[resultado].pk[1] = '|';        
         t->v[resultado].estado = REMOVIDO;      //Marcando também no seu estado
+        // p = ARQUIVO + (t->v[resultado].rrn * TAM_REGISTRO);
+        // t->v[resultado].estado = REMOVIDO;      //Marcando também no seu estado
+        // *p = '*';
+        // p = p + 1;
+        // *p = '|';
         //printf("chave: %s\nEstado: %d\n", t->v[resultado].pk, t->v[resultado].estado);
     }
 }

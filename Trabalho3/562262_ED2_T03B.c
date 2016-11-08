@@ -101,7 +101,16 @@ void cadastrar(Hashtable *t);
 
 /*Função que imprime a tabela*/
 void imprimir_tabela(Hashtable t);
- 
+
+/*Função que altera o CP de um pokemon*/
+void alterar(Hashtable t);
+
+/*Função que busca uma chave na tabela*/
+void buscar(Hashtable t);
+
+/*Função que remove uma pk da tabela*/
+void remover(Hashtable *t);
+
 /* =======================================
  * <<< Protótios de funções auxiliraes >>> 
  * ======================================= */
@@ -157,6 +166,12 @@ int inserir(Hashtable *t, Chave a, int pos);
 /*Função que grava os dados de um pokemon na string ARQUIVO*/
 void insere_arquivo(Pokemon info);
 
+/*Função que busca uma pk na tabela*/
+Chave* busca_tabela(Hashtable *t, char *pk);
+
+/*Altera o CP de um pokemon na string ARQUIVO*/
+void alterar_arquivo(Pokemon info, int rrn);
+
 /* ==========================================================================
  * ============================ FUNÇÃO PRINCIPAL ============================
  * =============================== NÃO ALTERAR ============================== */
@@ -192,15 +207,15 @@ int main() {
 			break;
 		case 2:
 			getchar();
-			//alterar(tabela);
+			alterar(tabela);
 			break;
 		case 3:
 			getchar();
-			//buscar(tabela);
+			buscar(tabela);
 			break;
 		case 4:
 		    getchar();
-			//remover(&tabela);
+			remover(&tabela);
 			break;
 		case 5:
 			imprimir_tabela(tabela);
@@ -491,6 +506,100 @@ void imprimir_tabela(Hashtable t)
 		}
 	}
     //printf("\n");
+}
+
+/*Função que altera o CP de um pokemon*/
+void alterar(Hashtable t)
+{
+    //printf("entrou na função alterar o cp!\n");
+    Chave *resultado = NULL;
+    char aux_pk[100], aux_cp[50];
+    Pokemon info;
+
+    scanf("\n%[^\n]s", aux_pk);                 //Lendo a primary_key
+    aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
+    deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
+    resultado = busca_tabela(&t, aux_pk);       //Efetuando a busca da primary_key na tabela
+    //printf("posição da busca: %d\n\n", resultado);
+
+    if (resultado == NULL)      //Se o resultado da busca for -1
+    {
+        printf(REGISTRO_N_ENCONTRADO);      //Significa que não encontrou a primary_key na árvore e printa na tela que não encontrou o registro
+        return;
+    }
+    else        //Caso contrário
+    {
+        do
+        {
+            scanf("\n%[^\n]s", aux_cp);     //Lendo o cp numa string auxiliar
+            aux_cp[TAM_CP-1] = '\0';        //Truncando a string, caso tenha tamanho maior que 7 bytes
+
+            if (!verificaCP(aux_cp))        //Verificando se o CP é válido
+            {
+                printf(CAMPO_INVALIDO);     //Caso for inválido, imprime na tela que o cp está incorreto e solicitar o dado novamente
+            }
+
+        } while (!verificaCP(aux_cp));      //Enquanto não digitar um CP válido, mantém o laço
+
+        strcpy(info.combat_points, aux_cp);     //Copia a string auxiliar para a estrutura pokemons
+        alterar_arquivo(info, resultado->rrn);         //Altera o CP na string ARQUIVO
+    }
+}
+
+/*Função que busca uma chave na tabela*/
+void buscar(Hashtable t)
+{
+    Chave *resultado = NULL;
+    char aux_pk[100];
+    Pokemon info;
+
+    scanf("\n%[^\n]s", aux_pk);                 //Lendo a primary_key
+    aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
+    deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
+    //printf("buscando pela chave %s\n", aux_pk);
+    resultado = busca_tabela(&t, aux_pk);       //Efetuando a busca da primary_key na tabela
+    //printf("posição que a busca retornou: %d\n", resultado);
+
+    if (resultado == NULL)      //Se o resultado da busca for -1
+    {
+        printf(REGISTRO_N_ENCONTRADO);      //Significa que não encontrou a primary_key na árvore e printa na tela que não encontrou o registro
+        return;
+    }
+    else        //Caso contrário
+    {
+        info = recuperar_registro(resultado->rrn);      //Recuperando um pokemon da string ARQUIVO
+        exibir_registro(resultado->rrn);        //Exibindo seu conteúdo na tela
+    }
+}
+
+/*Função que remove uma pk da tabela*/
+void remover(Hashtable *t)
+{
+    Chave *resultado = NULL;
+    char aux_pk[100];
+
+    scanf("\n%[^\n]s", aux_pk);                 //Lendo a primary_key
+    aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
+    deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
+    resultado = busca_tabela(t, aux_pk);       //Efetuando a busca da primary_key na tabela
+    //printf("retornou a posição: %d\n", resultado);
+
+    if (resultado == NULL)      //Se o resultado da busca for -1
+    {
+        printf(REGISTRO_N_ENCONTRADO);      //Significa que não encontrou a primary_key na árvore e printa na tela que não encontrou o registro
+        return;
+    }
+    else        //Caso contrário
+    {
+        resultado->pk[0] = '*';        //Marcando que esse pokemon foi removido na sua pk
+        resultado->pk[1] = '|';
+        // p = ARQUIVO + (t->v[resultado].rrn * TAM_REGISTRO);
+        // t->v[resultado].estado = REMOVIDO;      //Marcando também no seu estado
+        // *p = '*';
+        // p = p + 1;
+        // *p = '|';
+        //printf("chave: %s\nEstado: %d\n", t->v[resultado].pk, t->v[resultado].estado);
+    }
 }
 
 /* ======================================================================= *
@@ -989,19 +1098,21 @@ int hash(char *pk, int tam)
 int inserir(Hashtable *t, Chave a, int pos)
 {
 	Chave *novo, *aux;
-	aux = t->v[pos];
+	aux = t->v[pos]->prox;
 
 	//printf("Endereço de aux: %p\n", aux);
 	//printf("entrou na função inserir!\n");
 	//printf("inserindo a chave %s\n\n", a.pk);
 
-	if (aux->prox == NULL)		//Se a posição estiver livre
+	if (aux == NULL)		//Se a posição estiver livre
 	{
 		novo = malloc(sizeof(Chave));
 		novo->prox = NULL;
-		novo = &a;
-		printf("chave da caixa: %s\n", novo->pk);
-		printf("posicao: %d\n\n", pos);
+		strcpy(novo->pk,a.pk);
+        novo->rrn = a.rrn;
+        novo->prox = NULL;
+		//printf("chave da caixa: %s\n", novo->pk);
+		//printf("posicao: %d\n\n", pos);
 		//printf("t->[%d] é null\n", pos);
 		t->v[pos]->prox = novo;
 		//printf("t->[%d].pk: %s\n\n", pos, t->v[pos]->pk);
@@ -1009,10 +1120,14 @@ int inserir(Hashtable *t, Chave a, int pos)
 	}
 	else
 	{
-
-		while (aux->prox != NULL && strcmp(aux->pk, a.pk) < 0)		//Enquanto não chegar no fim da lista e a chave da caixa 
+        printf("entrou no else\n");
+        printf("aux pk: ");
+        printf("%s\n", aux->pk);
+        printf("%p\n", aux);
+        printf("pk a ser inserida: %s\n\n", a.pk);
+		while (aux != NULL && strcmp(aux->pk, a.pk) < 0)		//Enquanto não chegar no fim da lista e a chave da caixa 
 		{															//Atual for menor que a chave nova, executa o laço
-			aux = aux->prox;		//Andando pela lista		
+            aux = aux->prox;		//Andando pela lista		
 		}
 
 		// if (strcmp(aux->pk, a.pk) == 0)		//Se as chaves forem iguais
@@ -1020,11 +1135,11 @@ int inserir(Hashtable *t, Chave a, int pos)
 		// 	printf("chaves iguais!\n");
 		// 	return 0;		//Retorna que não foi possível inserir a nova chave
 		// }
-		novo = malloc(sizeof(Chave));
-		novo->prox = NULL;
-		novo = &a;
-		printf("colidiu na posicao %d\n", pos);
-		printf("chave da caixa: %s\n\n", novo->pk);
+		strcpy(novo->pk,a.pk);
+        novo->rrn = a.rrn;
+		//novo->prox = NULL;
+		//printf("colidiu na posicao %d\n", pos);
+		//printf("chave da caixa: %s\n\n", novo->pk);
 		novo->prox = aux->prox;		//Organizando os ponteiros
 		aux->prox = novo;
 		return 1;		//Retorna que a chave foi inserida normalmente
@@ -1069,4 +1184,58 @@ void insere_arquivo(Pokemon info)
     str[tam] = '\0';
 
     sprintf(p, "%s", str);     //Printando a string no arquivo
+}
+
+/*Função que busca uma pk na tabela*/
+Chave* busca_tabela(Hashtable *t, char *pk)
+{
+	int pos;   
+	Chave *aux;
+
+    pos = hash(pk, t->tam);
+	aux = t->v[pos]->prox;
+
+	//printf("Endereço de aux: %p\n", aux);
+	//printf("entrou na função inserir!\n");
+	//printf("inserindo a chave %s\n\n", a.pk);
+
+	if (aux == NULL)		//Se o ponteiro apontara para NULL
+	{
+		return NULL;		//Retorna que não encontrou a chave
+	}
+	else        //Caso contrário
+	{
+		while (aux != NULL && strcmp(aux->pk, pk) < 0)		//Enquanto não chegar no fim da lista e a chave da caixa 
+		{															//Atual for menor que a chave nova, executa o laço
+            aux = aux->prox;		//Andando pela lista		
+		}
+
+		if (strcmp(aux->pk, pk) == 0)		//Se as chaves forem iguais
+		{
+			return aux;		//Retorna que encontrou a chave
+		}
+		
+		return NULL;		//Se não retorna que não encontrou a chave			
+	}
+}
+
+/*Altera o CP de um pokemon na string ARQUIVO*/
+void alterar_arquivo(Pokemon info, int rrn)
+{
+    char *p;
+    p = ARQUIVO + (192 * rrn);
+
+    sscanf(p, "%[^@]s", info.primary_key);       //Lendo os dados na variavel info e andando o ponteiro p
+    p = p + TAM_PRIMARY_KEY;
+
+    sscanf(p, "%[^@]s", info.nome_pokemon);
+    p = p + strlen(info.nome_pokemon)+1;
+
+    sscanf(p, "%[^@]s", info.tipo_pokemon);
+    p = p + strlen(info.tipo_pokemon)+1;
+
+    sprintf(p, "%s", info.combat_points);
+    p = p + TAM_CP-1;
+
+    *p = '@';
 }
