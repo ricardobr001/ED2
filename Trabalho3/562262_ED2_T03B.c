@@ -111,6 +111,9 @@ void buscar(Hashtable t);
 /*Função que remove uma pk da tabela*/
 void remover(Hashtable *t);
 
+/*Função que libera a tabela*/
+void liberar_tabela(Hashtable *t);
+
 /* =======================================
  * <<< Protótios de funções auxiliraes >>> 
  * ======================================= */
@@ -221,7 +224,7 @@ int main() {
 			imprimir_tabela(tabela);
 			break;
 		case 6:
-			//liberar_tabela(&tabela);
+			liberar_tabela(&tabela);
 			break;
 
 		case 10:
@@ -475,6 +478,7 @@ void cadastrar(Hashtable *t)
 	strcpy(info.nome_equipe, aux);
 
 	geraChavePrimaria(&info, &a); //Gerando a chave primária do pokemon lido
+    printf("%s\n", info.primary_key);
 	insere_tabela(t, a);		//Colocando a chave na tabela
 	insere_arquivo(info);		//Inserindo na string ARQUIVO
 	n_registros++;		//Atualizando o número de registros no sistema
@@ -505,7 +509,7 @@ void imprimir_tabela(Hashtable t)
 			printf("\n");
 		}
 	}
-    //printf("\n");
+    printf("\n");
 }
 
 /*Função que altera o CP de um pokemon*/
@@ -520,7 +524,6 @@ void alterar(Hashtable t)
     aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
     deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
     resultado = busca_tabela(&t, aux_pk);       //Efetuando a busca da primary_key na tabela
-    //printf("posição da busca: %d\n\n", resultado);
 
     if (resultado == NULL)      //Se o resultado da busca for -1
     {
@@ -556,9 +559,7 @@ void buscar(Hashtable t)
     scanf("\n%[^\n]s", aux_pk);                 //Lendo a primary_key
     aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
     deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
-    //printf("buscando pela chave %s\n", aux_pk);
     resultado = busca_tabela(&t, aux_pk);       //Efetuando a busca da primary_key na tabela
-    //printf("posição que a busca retornou: %d\n", resultado);
 
     if (resultado == NULL)      //Se o resultado da busca for -1
     {
@@ -575,31 +576,66 @@ void buscar(Hashtable t)
 /*Função que remove uma pk da tabela*/
 void remover(Hashtable *t)
 {
-    Chave *resultado = NULL;
+    Chave *aux, *aux_remove;
     char aux_pk[100];
+    int pos;
+    char *p;
 
     scanf("\n%[^\n]s", aux_pk);                 //Lendo a primary_key
     aux_pk[TAM_PRIMARY_KEY-1] = '\0';           //Truncando a string, caso tenha tamanho maior que 12 bytes
     deixa_maiusculo(aux_pk);                    //Deixando a string maiuscula
-    resultado = busca_tabela(t, aux_pk);       //Efetuando a busca da primary_key na tabela
-    //printf("retornou a posição: %d\n", resultado);
+    pos = hash(aux_pk, t->tam);
+    aux = t->v[pos];    
 
-    if (resultado == NULL)      //Se o resultado da busca for -1
+    while(aux->prox != NULL && strcmp(aux->prox->pk, aux_pk) < 0)
+    {
+        aux = aux->prox;
+    }
+
+    if (aux->prox == NULL)      //Se chegamos ao final da lista
     {
         printf(REGISTRO_N_ENCONTRADO);      //Significa que não encontrou a primary_key na árvore e printa na tela que não encontrou o registro
-        return;
     }
-    else        //Caso contrário
+    else if (strcmp(aux->prox->pk, aux_pk) != 0)        //Se as chaves não forem iguais
     {
-        resultado->pk[0] = '*';        //Marcando que esse pokemon foi removido na sua pk
-        resultado->pk[1] = '|';
-        // p = ARQUIVO + (t->v[resultado].rrn * TAM_REGISTRO);
-        // t->v[resultado].estado = REMOVIDO;      //Marcando também no seu estado
-        // *p = '*';
-        // p = p + 1;
-        // *p = '|';
-        //printf("chave: %s\nEstado: %d\n", t->v[resultado].pk, t->v[resultado].estado);
+        printf(REGISTRO_N_ENCONTRADO);      //Significa que não encontrou a primary_key na árvore e printa na tela que não encontrou o registro
     }
+    else        //Caso contrário as chaves são iguais
+    {        
+        p = ARQUIVO + (aux->prox->rrn * TAM_REGISTRO);      //Indo na posição que o registro se encontra na string ARQUIVO
+        *p = '*';       //Marcando o registro como removido
+        p++;
+        *p = '|';          
+        
+        aux_remove = aux->prox;     //Ajustando os ponteiros
+        aux->prox = aux->prox->prox;        
+        free(aux_remove);       //Liberando a memória alocada do nó
+    }
+}
+
+/*Função que libera a tabela*/
+void liberar_tabela(Hashtable *t)
+{
+    int i;
+    Chave *aux, *aux_remove;
+
+    for (i = 0 ; i < t->tam ; i++)     //Laço para liberar as chaves alocadas
+    {
+        aux = t->v[i]->prox;
+        
+        while (aux != NULL)     //Laço que libera as chaves alocadas em uma determinada posição
+        {
+            aux_remove = aux;
+            aux = aux->prox;
+            free(aux_remove);
+        }
+
+        free(t->v[i]);      //Liberando o nó cabeça
+	}
+
+	free(t->v);		//Liberando o vetor de ponteiros de chaves
+
+    
 }
 
 /* ======================================================================= *
@@ -1059,17 +1095,14 @@ void insere_tabela_sem_comentario(Hashtable *t, Chave a)
 	pos = hash(a.pk, t->tam);		//Encontrando a posição para a inserção
 
 	inserir(t, a, pos);		//Insere a chave na tabela
-	//printf("Chave inserida: %s na posição %d\n", t->v[pos]->prox->pk, pos);
 }
 
 /*Função que ira inserir a nova chave na tabela e mostra o número de colisões*/
 void insere_tabela(Hashtable *t, Chave a)
 {
 	int pos = 0;
-	//printf("Inserindo a chave %s!\n", a.pk);
 
 	pos = hash(a.pk, t->tam);		//Encontrando a posição para a inserção
-	//printf("Posição da inserção: %d\n", pos);
 
 	if (inserir(t, a, pos))		//Se a função tiver retornado um 1
 	{
@@ -1098,11 +1131,7 @@ int hash(char *pk, int tam)
 int inserir(Hashtable *t, Chave a, int pos)
 {
 	Chave *novo, *aux;
-	aux = t->v[pos]->prox;
-
-	//printf("Endereço de aux: %p\n", aux);
-	//printf("entrou na função inserir!\n");
-	//printf("inserindo a chave %s\n\n", a.pk);
+	aux = t->v[pos];
 
 	if (aux == NULL)		//Se a posição estiver livre
 	{
@@ -1111,35 +1140,29 @@ int inserir(Hashtable *t, Chave a, int pos)
 		strcpy(novo->pk,a.pk);
         novo->rrn = a.rrn;
         novo->prox = NULL;
-		//printf("chave da caixa: %s\n", novo->pk);
-		//printf("posicao: %d\n\n", pos);
-		//printf("t->[%d] é null\n", pos);
 		t->v[pos]->prox = novo;
-		//printf("t->[%d].pk: %s\n\n", pos, t->v[pos]->pk);
 		return 1;		//Retorna que a chave foi inserida normalmente
 	}
 	else
 	{
-        printf("entrou no else\n");
-        printf("aux pk: ");
-        printf("%s\n", aux->pk);
-        printf("%p\n", aux);
-        printf("pk a ser inserida: %s\n\n", a.pk);
-		while (aux != NULL && strcmp(aux->pk, a.pk) < 0)		//Enquanto não chegar no fim da lista e a chave da caixa 
+		while (aux->prox != NULL && strcmp(aux->prox->pk, a.pk) < 0)		//Enquanto não chegar no fim da lista e a chave da caixa 
 		{															//Atual for menor que a chave nova, executa o laço
             aux = aux->prox;		//Andando pela lista		
 		}
 
-		// if (strcmp(aux->pk, a.pk) == 0)		//Se as chaves forem iguais
-		// {
-		// 	printf("chaves iguais!\n");
-		// 	return 0;		//Retorna que não foi possível inserir a nova chave
-		// }
+        if (aux->prox == NULL)      //Se andou a lista inteira, portando insere no final
+        {
+            novo = malloc(sizeof(Chave));
+            strcpy(novo->pk,a.pk);
+            novo->rrn = a.rrn;
+            novo->prox = NULL;		//Organizando os ponteiros
+            aux->prox = novo;
+            return 1;
+        }
+        
+        novo = malloc(sizeof(Chave));
 		strcpy(novo->pk,a.pk);
         novo->rrn = a.rrn;
-		//novo->prox = NULL;
-		//printf("colidiu na posicao %d\n", pos);
-		//printf("chave da caixa: %s\n\n", novo->pk);
 		novo->prox = aux->prox;		//Organizando os ponteiros
 		aux->prox = novo;
 		return 1;		//Retorna que a chave foi inserida normalmente
@@ -1195,10 +1218,6 @@ Chave* busca_tabela(Hashtable *t, char *pk)
     pos = hash(pk, t->tam);
 	aux = t->v[pos]->prox;
 
-	//printf("Endereço de aux: %p\n", aux);
-	//printf("entrou na função inserir!\n");
-	//printf("inserindo a chave %s\n\n", a.pk);
-
 	if (aux == NULL)		//Se o ponteiro apontara para NULL
 	{
 		return NULL;		//Retorna que não encontrou a chave
@@ -1210,7 +1229,11 @@ Chave* busca_tabela(Hashtable *t, char *pk)
             aux = aux->prox;		//Andando pela lista		
 		}
 
-		if (strcmp(aux->pk, pk) == 0)		//Se as chaves forem iguais
+        if(aux == NULL)       //Caso a ultima caixa seja NULL
+        {
+            return NULL;        //Retorna que não encontrou a chave
+        }
+		else if (strcmp(aux->pk, pk) == 0)		//Se as chaves forem iguais
 		{
 			return aux;		//Retorna que encontrou a chave
 		}
